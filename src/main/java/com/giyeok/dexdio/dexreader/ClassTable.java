@@ -36,7 +36,7 @@ public class ClassTable {
 	}
 	
 	public static class AnnotationsInfo {
-		public class Annotations {				// annotation_set_item ¿¡ ´ëÀÀµÊ
+		public class Annotations {				// annotation_set_item ì— ëŒ€ì‘ë¨
 			annotation_item annotations[];
 			
 			public Annotations(long offset, EndianRandomAccessFile file) throws IOException {
@@ -371,7 +371,7 @@ public class ClassTable {
 						virtual_method.code_item(code_item);
 					}
 				}
-				// TODO debug_info_item Ã³¸®
+				// TODO debug_info_item ì²˜ë¦¬
 			}
 			
 			long static_values_off = class_def_item.static_values_off();

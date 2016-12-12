@@ -72,7 +72,7 @@ public class ReplacedAliveInstSemListing extends InstSemListing {
 			}
 		}
 		if (deadcodes.isDeadInstruction(first)) {
-			// ºí·Ï ÀüÃ¼°¡ dead codeÀÓÀ» ÀÇ¹Ì
+			// ë¸”ë¡ ì „ì²´ê°€ dead codeì„ì„ ì˜ë¯¸
 			items.add(Label.newLabel(getIndentSpace(indent, -2) + "-- block " + bb.getName() + " is all dead codes"));
 			return;
 		}
@@ -103,13 +103,13 @@ public class ReplacedAliveInstSemListing extends InstSemListing {
 				} else {
 					if ((i == firstIndex) && (i == lastIndex)) {
 						assert firstIndex == lastIndex;
-						s = String.format("%" + ((indent + 2) * 4 - 3) + "s", bb.getName()) + " ¦¡¦¡" + address + " : ";
+						s = String.format("%" + ((indent + 2) * 4 - 3) + "s", bb.getName()) + " â”€â”€" + address + " : ";
 					} else if (i == firstIndex) {
-						s = String.format("%" + ((indent + 2) * 4 - 3) + "s", bb.getName()) + " ¦£¦¡" + address + " : ";
+						s = String.format("%" + ((indent + 2) * 4 - 3) + "s", bb.getName()) + " â”Œâ”€" + address + " : ";
 					} else if (i == lastIndex) {
-						s = getIndentSpace(indent, -2) + "¦¦¦¡" + address + " : ";
+						s = getIndentSpace(indent, -2) + "â””â”€" + address + " : ";
 					} else {
-						s = getIndentSpace(indent, -2) + "¦¢ " + address + " : ";
+						s = getIndentSpace(indent, -2) + "â”‚ " + address + " : ";
 					}
 					instructionLabel.add(Label.newLabel(s));
 				}

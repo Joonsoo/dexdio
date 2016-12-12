@@ -20,9 +20,9 @@ public class DexInstInvoke extends DexInstruction {
 		
 		((OperandConstantPool) getOperand(0)).setConstantKind(ConstantPoolKind.METHOD);
 		
-		// invoke-static È¤Àº invoke-static/range ÀÌ¸é¼­ getOperandsLength() == 1ÀÌ°Å³ª, ±×·¸Áö ¾ÊÀº °æ¿ì
-		// getOperand(1)Àº OperandRegisterRangeÀÌ°Å³ª
-		// getOperand(1..)ÀÌ ¸ğµÎ OperandRegisterÀÌ¾î¾ß ÇÑ´Ù
+		// invoke-static í˜¹ì€ invoke-static/range ì´ë©´ì„œ getOperandsLength() == 1ì´ê±°ë‚˜, ê·¸ë ‡ì§€ ì•Šì€ ê²½ìš°
+		// getOperand(1)ì€ OperandRegisterRangeì´ê±°ë‚˜
+		// getOperand(1..)ì´ ëª¨ë‘ OperandRegisterì´ì–´ì•¼ í•œë‹¤
 		if (getOperandsLength() == 1) {
 			assert getInvokeType() == InvokeType.STATIC;
 		} else {

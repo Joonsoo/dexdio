@@ -35,8 +35,8 @@ public class DexClassDetailViewer {
 	private ClassOutlineView classOutline;
 	private ClassContentView classContent;
 	
-	// itemDetail: ÇöÀç classDetail¿¡¼­ ¼±ÅÃµÈ ¾ÆÀÌÅÛ¿¡ ´ëÇÑ µğÅ×ÀÏÀ» º¸¿©ÁÖ´Â À§Á¬
-	// ±âº»ÀûÀ¸·Î ¼±ÅÃµÈ ÇöÀç Å¬·¡½º, ÇÊµå, ¸Ş¼Òµå ¿Ü¿¡, ´Ù¸¥ Å¸ÀÔ(Å¬·¡½º¸¦ Æ÷ÇÔÇÑ), ¾î³ëÅ×ÀÌ¼Ç, º¯¼ö, ÆÄ¶ó¸ŞÅÍ µîÀÌ ÀÖÀ» ¼ö ÀÖÀ½
+	// itemDetail: í˜„ì¬ classDetailì—ì„œ ì„ íƒëœ ì•„ì´í…œì— ëŒ€í•œ ë””í…Œì¼ì„ ë³´ì—¬ì£¼ëŠ” ìœ„ì ¯
+	// ê¸°ë³¸ì ìœ¼ë¡œ ì„ íƒëœ í˜„ì¬ í´ë˜ìŠ¤, í•„ë“œ, ë©”ì†Œë“œ ì™¸ì—, ë‹¤ë¥¸ íƒ€ì…(í´ë˜ìŠ¤ë¥¼ í¬í•¨í•œ), ì–´ë…¸í…Œì´ì…˜, ë³€ìˆ˜, íŒŒë¼ë©”í„° ë“±ì´ ìˆì„ ìˆ˜ ìˆìŒ
 	private Composite itemDetail;
 	private StackLayout detailLayout;
 	private DetailOfClassView classDetail;
@@ -44,7 +44,7 @@ public class DexClassDetailViewer {
 	private DetailOfMethodView methodDetail;
 	private DetailOfInstructionView instDetail;
 	
-	// method content view style ¼³Á¤ ¹öÆ°
+	// method content view style ì„¤ì • ë²„íŠ¼
 	private Combo comboMethodContentViewStyle;
 	
 	public DexClassDetailViewer(MainView mainView, Composite parent, final DexProgram program) {

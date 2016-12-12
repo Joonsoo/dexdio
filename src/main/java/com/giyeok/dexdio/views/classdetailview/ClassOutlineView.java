@@ -19,7 +19,7 @@ import com.giyeok.dexdio.widgets.ListWidgetSelectionListener;
 import com.giyeok.dexdio.widgets.OneSelectionListEventListener;
 
 /**
- * Å¬·¡½ºÀÇ ¾Æ¿ô¶óÀÎÀ» º¸ÀÌ´Â ¸®½ºÆ®
+ * í´ë˜ìŠ¤ì˜ ì•„ì›ƒë¼ì¸ì„ ë³´ì´ëŠ” ë¦¬ìŠ¤íŠ¸
  * @author joonsoo
  *
  */
@@ -84,7 +84,7 @@ class ClassOutlineView extends LabelListWidget {
 				labels[1] = Label.newLabel(field.getName(), ColorConstants.black);
 				labels[2] = Label.newLabel(" : ", ColorConstants.orange);
 				labels[3] = Label.newLabel(field.getType().getTypeShortNameBeauty(), ColorConstants.orange);
-				// labels[3]¿¡ hover event ¹× click ÀÌº¥Æ® Ãß°¡
+				// labels[3]ì— hover event ë° click ì´ë²¤íŠ¸ ì¶”ê°€
 				return Label.newLabel(labels);
 			} else {
 				Label labels[] = new Label[6];
@@ -93,7 +93,7 @@ class ClassOutlineView extends LabelListWidget {
 				labels[1] = Label.newLabel(field.getName(), ColorConstants.black);
 				labels[2] = Label.newLabel(" : ", ColorConstants.orange);
 				labels[3] = Label.newLabel(field.getType().getTypeShortNameBeauty(), ColorConstants.orange);
-				// labels[3]¿¡ hover event ¹× click ÀÌº¥Æ® Ãß°¡
+				// labels[3]ì— hover event ë° click ì´ë²¤íŠ¸ ì¶”ê°€
 				labels[4] = Label.newLabel(" = ", ColorConstants.black);
 				labels[5] = Label.newLabel(defaultValue.toString(), ColorConstants.black);
 				return Label.newLabel(labels);
@@ -139,7 +139,7 @@ class ClassOutlineView extends LabelListWidget {
 							return false;
 						}
 					}.setType(params[i]));
-					// paramLabel¿¡ hover event ¹× click ÀÌº¥Æ® Ãß°¡
+					// paramLabelì— hover event ë° click ì´ë²¤íŠ¸ ì¶”ê°€
 				}
 				labels[2 + params.length * 2] = Label.newLabel(")", ColorConstants.black);
 				labels[3 + params.length * 2] = Label.newLabel(" : ", ColorConstants.orange);

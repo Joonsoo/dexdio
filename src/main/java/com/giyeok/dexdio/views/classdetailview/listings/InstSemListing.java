@@ -448,7 +448,7 @@ public class InstSemListing extends MethodContentListing {
 			
 			sublabels.add(Label.newLabel("new"));
 			sublabels.add(Label.newLabel(" "));
-			sublabels.add(getNameLabelForType(type));			// TODO typeÀÇ element typeÀ¸·Î ¸¸µé¾î¾ß ÇÔ
+			sublabels.add(getNameLabelForType(type));			// TODO typeì˜ element typeìœ¼ë¡œ ë§Œë“¤ì–´ì•¼ í•¨
 			if (size != null) {
 				sublabels.add(Label.newLabel("["));
 				instructionSemanticLabel(cdv, sublabels, size, replaced);

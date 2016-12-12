@@ -12,7 +12,7 @@ public class InstSemEtcStatement extends InstSemStatement {
 	private DexCodeItem codeitem;
 
 	/**
-	 * operands´Â ¸ğµÎ ÀĞ±â¿¡¸¸ »ç¿ëµÇ´Â °ÍÀ¸·Î °£ÁÖ
+	 * operandsëŠ” ëª¨ë‘ ì½ê¸°ì—ë§Œ ì‚¬ìš©ë˜ëŠ” ê²ƒìœ¼ë¡œ ê°„ì£¼
 	 * @param opcode
 	 * @param useoperands
 	 */

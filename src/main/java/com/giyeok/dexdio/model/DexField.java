@@ -111,8 +111,8 @@ public class DexField {
 	}
 	
 	/**
-	 * static_values¿¡¼­ ¼³Á¤µÈ ±âº»°ªÀ» ¹İÈ¯ÇÑ´Ù.
-	 * ±âº»°ªÀÌ ¼³Á¤µÇÁö ¾Ê¾ÒÀ¸¸é nullÀ» ¹İÈ¯ÇÑ´Ù.
+	 * static_valuesì—ì„œ ì„¤ì •ëœ ê¸°ë³¸ê°’ì„ ë°˜í™˜í•œë‹¤.
+	 * ê¸°ë³¸ê°’ì´ ì„¤ì •ë˜ì§€ ì•Šì•˜ìœ¼ë©´ nullì„ ë°˜í™˜í•œë‹¤.
 	 * @return
 	 */
 	public Value getDefaultValue() {

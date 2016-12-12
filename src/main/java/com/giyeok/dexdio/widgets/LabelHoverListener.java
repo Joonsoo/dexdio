@@ -5,8 +5,8 @@ import org.eclipse.swt.events.MouseEvent;
 public interface LabelHoverListener {
 
 	/**
-	 * ¶óº§ À§¿¡ ¸¶¿ì½º°¡ È£¹öµÇ¾úÀ» ¶§¸¦ Ã³¸®ÇÑ´Ù.
-	 * Ã³¸®ÇßÀ¸¸é true, Ã³¸®µÇÁö ¾Ê¾ÒÀ¸¸é false¸¦ ¹İÈ¯ÇÑ´Ù.
+	 * ë¼ë²¨ ìœ„ì— ë§ˆìš°ìŠ¤ê°€ í˜¸ë²„ë˜ì—ˆì„ ë•Œë¥¼ ì²˜ë¦¬í•œë‹¤.
+	 * ì²˜ë¦¬í–ˆìœ¼ë©´ true, ì²˜ë¦¬ë˜ì§€ ì•Šì•˜ìœ¼ë©´ falseë¥¼ ë°˜í™˜í•œë‹¤.
 	 * @param widget
 	 * @param index
 	 * @param label

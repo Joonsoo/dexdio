@@ -39,8 +39,8 @@ public class TreeWidget extends ListWidget {
 		
 		public abstract int GetLength();
 		/**
-		 * GetChildrenÀÌ ½ÇÇàµÇ±â Àü¿¡ ÃÖ¼Ò ÇÑ ¹ø ÀÌ»óÀº Expanded°¡ È£ÃâµÈ´Ù.
-		 * because: GetChildrenÀº expanded item¿¡ ´ëÇØ¼­¸¸ È£ÃâµÇ´Âµ¥, Æ®¸® ¾ÆÀÌÅÛÀº Ã³À½¿£ ¹İµå½Ã collapsed·Î ½ÃÀÛÇÏ±â ¶§¹®
+		 * GetChildrenì´ ì‹¤í–‰ë˜ê¸° ì „ì— ìµœì†Œ í•œ ë²ˆ ì´ìƒì€ Expandedê°€ í˜¸ì¶œëœë‹¤.
+		 * because: GetChildrenì€ expanded itemì— ëŒ€í•´ì„œë§Œ í˜¸ì¶œë˜ëŠ”ë°, íŠ¸ë¦¬ ì•„ì´í…œì€ ì²˜ìŒì—” ë°˜ë“œì‹œ collapsedë¡œ ì‹œì‘í•˜ê¸° ë•Œë¬¸
 		 * @return
 		 */
 		public abstract TreeItem[] GetChildren();

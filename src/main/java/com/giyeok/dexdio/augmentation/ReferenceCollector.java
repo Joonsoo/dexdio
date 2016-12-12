@@ -20,7 +20,7 @@ import com.giyeok.dexdio.model.insns.DexInstStaticOp;
 import com.giyeok.dexdio.model.insns.DexInstruction;
 
 /**
- * �� �޼ҵ带 ȣ���ϴ� �ν�Ʈ����, �ʵ带 �����ϴ� �ν�Ʈ����, Ÿ���� �����ϴ� �ν�Ʈ������ ã�´� 
+ * 각 메소드를 호출하는 인스트럭션, 필드를 참조하는 인스트럭션, 타입을 참조하는 인스트럭션을 찾는다 
  * 
  * @author Joonsoo
  *

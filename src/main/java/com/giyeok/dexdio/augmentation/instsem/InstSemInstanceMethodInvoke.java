@@ -21,7 +21,7 @@ public class InstSemInstanceMethodInvoke extends InstSemStatement implements Ins
 		this.method = method;
 		this.args = args;
 		
-		// ÀÌ °´Ã¼°¡ statement°¡ ¾Æ´Ñ operand·Î »ç¿ëµÈ °ÍÀÌ¸é µÚ¿¡ setStatement°¡ È£ÃâµÉ ¶§ statement°¡ ´Ù½Ã ¼³Á¤µÈ´Ù
+		// ì´ ê°ì²´ê°€ statementê°€ ì•„ë‹Œ operandë¡œ ì‚¬ìš©ëœ ê²ƒì´ë©´ ë’¤ì— setStatementê°€ í˜¸ì¶œë  ë•Œ statementê°€ ë‹¤ì‹œ ì„¤ì •ëœë‹¤
 		this.statement = this;
 		instance.setStatement(this);
 		for (InstSemRegister reg: args) {

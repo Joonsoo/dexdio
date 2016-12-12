@@ -329,7 +329,7 @@ abstract public class ListWidget extends Canvas
 	}
 	
 	public void boundScroll(int index) {
-		// index°¡ È­¸é¿¡ ³ªÅ¸³ªµµ·Ï ½ºÅ©·ÑÀ» ¹Ù¿îµå
+		// indexê°€ í™”ë©´ì— ë‚˜íƒ€ë‚˜ë„ë¡ ìŠ¤í¬ë¡¤ì„ ë°”ìš´ë“œ
 		if (index < scrolltop) {
 			scrolltop = index;
 		} else if (index >= scrolltop + showinglines) {

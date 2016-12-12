@@ -5,8 +5,8 @@ import org.eclipse.swt.events.MouseEvent;
 public interface LabelClickListener {
 
 	/**
-	 * ¸¶¿ì½º°¡ Å¬¸¯µÇ¾úÀ» °æ¿ì¸¦ Ã³¸®ÇÑ´Ù.
-	 * Ã³¸®°¡ ¿Ï·áµÇ¸é true¸¦ ¹İÈ¯ÇÏ°í, ±×·¸Áö ¾ÊÀ¸¸é false¸¦ ¹İÈ¯ÇÑ´Ù.
+	 * ë§ˆìš°ìŠ¤ê°€ í´ë¦­ë˜ì—ˆì„ ê²½ìš°ë¥¼ ì²˜ë¦¬í•œë‹¤.
+	 * ì²˜ë¦¬ê°€ ì™„ë£Œë˜ë©´ trueë¥¼ ë°˜í™˜í•˜ê³ , ê·¸ë ‡ì§€ ì•Šìœ¼ë©´ falseë¥¼ ë°˜í™˜í•œë‹¤.
 	 * @param widget
 	 * @param index
 	 * @param label
@@ -18,8 +18,8 @@ public interface LabelClickListener {
 	public boolean labelClicked(LabelListWidget widget, int index, Label label, int x, int y, MouseEvent e);
 
 	/**
-	 * ¸¶¿ì½º°¡ ´õºí Å¬¸¯µÇ¾úÀ» °æ¿ì¸¦ Ã³¸®ÇÑ´Ù.
-	 * Ã³¸®°¡ ¿Ï·áµÇ¸é true¸¦ ¹İÈ¯ÇÏ°í, ±×·¸Áö ¾ÊÀ¸¸é false¸¦ ¹İÈ¯ÇÑ´Ù.
+	 * ë§ˆìš°ìŠ¤ê°€ ë”ë¸” í´ë¦­ë˜ì—ˆì„ ê²½ìš°ë¥¼ ì²˜ë¦¬í•œë‹¤.
+	 * ì²˜ë¦¬ê°€ ì™„ë£Œë˜ë©´ trueë¥¼ ë°˜í™˜í•˜ê³ , ê·¸ë ‡ì§€ ì•Šìœ¼ë©´ falseë¥¼ ë°˜í™˜í•œë‹¤.
 	 * @param widget
 	 * @param index
 	 * @param label

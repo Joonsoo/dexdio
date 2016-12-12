@@ -28,7 +28,7 @@ import com.giyeok.dexdio.model.DexProgram;
 import com.giyeok.dexdio.model.DexType;
 
 /**
- * data flow analysis °á°ú¸¦ ÀÌ¿ëÇÏ¿© °¢ ¿ÀÆÛ·£µåÀÇ Å¸ÀÔÀ» À¯ÃßÇÑ´Ù
+ * data flow analysis ê²°ê³¼ë¥¼ ì´ìš©í•˜ì—¬ ê° ì˜¤í¼ëœë“œì˜ íƒ€ì…ì„ ìœ ì¶”í•œë‹¤
  * 
  * @author Joonsoo
  *
@@ -106,8 +106,8 @@ public class OperandTypeInferer extends Augmentation {
 		}
 		
 		/**
-		 * °¢ operand¿¡ ´ëÇØ¼­ genÀÇ Å¸ÀÔÀ» use¿¡ Ãß°¡ÇÑ´Ù
-		 * º¯È­°¡ »ı±â¸é true¸¦ ¹İÈ¯ÇÏ°í ±×·¸Áö ¾ÊÀ¸¸é false¸¦ ¹İÈ¯ÇÑ´Ù
+		 * ê° operandì— ëŒ€í•´ì„œ genì˜ íƒ€ì…ì„ useì— ì¶”ê°€í•œë‹¤
+		 * ë³€í™”ê°€ ìƒê¸°ë©´ trueë¥¼ ë°˜í™˜í•˜ê³  ê·¸ë ‡ì§€ ì•Šìœ¼ë©´ falseë¥¼ ë°˜í™˜í•œë‹¤
 		 * @return
 		 */
 		private boolean propagate(DexCodeItem codeitem) {
@@ -153,8 +153,8 @@ public class OperandTypeInferer extends Augmentation {
 		}
 		
 		private boolean processArrayReference(InstSemArrayReference arrayref) {
-			// getProgressOf(arrayref.getArray());	=> ¿©±â¿¡´Â array typeÀÌ µé¾î ÀÖ¾î¾ß ÇÏ°í, ÀÌ Å¸ÀÔµé·ÎºÎÅÍ
-			// getProgressOf(arrayref)				=> ¿©±â¿¡ array typeµéÀÇ element typeÀ» ³Ö¾î ÁÖ¾î¾ß ÇÑ´Ù
+			// getProgressOf(arrayref.getArray());	=> ì—¬ê¸°ì—ëŠ” array typeì´ ë“¤ì–´ ìˆì–´ì•¼ í•˜ê³ , ì´ íƒ€ì…ë“¤ë¡œë¶€í„°
+			// getProgressOf(arrayref)				=> ì—¬ê¸°ì— array typeë“¤ì˜ element typeì„ ë„£ì–´ ì£¼ì–´ì•¼ í•œë‹¤
 			for (DexType type: getProgressOf(arrayref.getArray())) {
 				if (type instanceof DexArrayType) {
 					getProgressOf(arrayref).add(((DexArrayType) type).getElementType());
@@ -170,7 +170,7 @@ public class OperandTypeInferer extends Augmentation {
 			InstSemStatement sem[];
 			sem = methsem.getStatements();
 			
-			// ¸ğµç ¿ÀÆÛ·£µå¸¦ ¼öÁıÇÏ°í ±âº» Å¸ÀÔ Á¤º¸¸¦ ÀúÀåÇÑ´Ù
+			// ëª¨ë“  ì˜¤í¼ëœë“œë¥¼ ìˆ˜ì§‘í•˜ê³  ê¸°ë³¸ íƒ€ì… ì •ë³´ë¥¼ ì €ì¥í•œë‹¤
 			for (InstSemParameter param: methsem.getParametersIncludingInstanceRegister()) {
 				Set<DexType> set = getProgressOf(param);
 				DexType type = param.getOperandTypeData();
@@ -190,9 +190,9 @@ public class OperandTypeInferer extends Augmentation {
 					}
 				}
 			}
-			// TODO check-cast ÀÎ½ºÆ®·°¼ÇÀÌ ½ÇÇàµÈ ÀÌÈÄºÎÅÍ ClassCastException ¿¹¿Ü Ã³¸® ÇÚµé·¯¿¡¼­ ´Ù½Ã µ¹¾Æ¿Ã ¶§±îÁø Å¸ÀÔÀÌ ÁöÁ¤µÇ¾ú´Ù°í º¼ ¼ö ÀÖ´Ù
+			// TODO check-cast ì¸ìŠ¤íŠ¸ëŸ­ì…˜ì´ ì‹¤í–‰ëœ ì´í›„ë¶€í„° ClassCastException ì˜ˆì™¸ ì²˜ë¦¬ í•¸ë“¤ëŸ¬ì—ì„œ ë‹¤ì‹œ ëŒì•„ì˜¬ ë•Œê¹Œì§„ íƒ€ì…ì´ ì§€ì •ë˜ì—ˆë‹¤ê³  ë³¼ ìˆ˜ ìˆë‹¤
 	
-			// propagation°ú Á¤ÀÇ °úÁ¤¿¡¼± Ã³¸®µÇÁö ¸øÇÑ instsem¿¡ ´ëÇÑ Å¸ÀÔ Ã³¸®¸¦ convergeÇÒ ¶§±îÁö ¹İº¹ ¼öÇàÇÑ´Ù
+			// propagationê³¼ ì •ì˜ ê³¼ì •ì—ì„  ì²˜ë¦¬ë˜ì§€ ëª»í•œ instsemì— ëŒ€í•œ íƒ€ì… ì²˜ë¦¬ë¥¼ convergeí•  ë•Œê¹Œì§€ ë°˜ë³µ ìˆ˜í–‰í•œë‹¤
 			boolean updated = true;
 			
 			while (updated) {
@@ -219,7 +219,7 @@ public class OperandTypeInferer extends Augmentation {
 				}
 			}
 			
-			// type inference Á¤º¸¸¦ ÀúÀåÇÑ´Ù
+			// type inference ì •ë³´ë¥¼ ì €ì¥í•œë‹¤
 			DeadCodeCollector deadcodes = DeadCodeCollector.get(getProgram());
 			for (InstSemOperand operand: progress.keySet()) {
 				Set<DexType> set = getProgressOf(operand);

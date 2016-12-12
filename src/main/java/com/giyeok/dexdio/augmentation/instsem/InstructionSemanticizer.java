@@ -373,7 +373,7 @@ public class InstructionSemanticizer extends Augmentation {
 			InstSemConst type = new InstSemConst(codeitem, iof.getType());
 			
 			dst.setOperandTypeData(program.getBooleanPrimitiveType());
-			// TODO instanceµµ Å¸ÀÔÀÌ ÇÊ¿äÇÑÁö °í¹ÎÇØº¼ °Í
+			// TODO instanceë„ íƒ€ì…ì´ í•„ìš”í•œì§€ ê³ ë¯¼í•´ë³¼ ê²ƒ
 			
 			return new InstSemAssignment(codeitem, dst, new InstSemBinaryOp(codeitem, instance, BinaryOperator.INSTANCE_OF, type));
 		}

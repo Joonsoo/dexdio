@@ -102,13 +102,13 @@ public abstract class MethodContentListing {
 			boolean isFirst = bb.isFirstInstruction(instruction);
 			boolean isLast = bb.isLastInstruction(instruction);
 			if (isFirst && isLast) {
-				instructionLabel.add(Label.newLabel(String.format("%5s", bb.getName()) + " ¦¡¦¡" + address + " : "));
+				instructionLabel.add(Label.newLabel(String.format("%5s", bb.getName()) + " â”€â”€" + address + " : "));
 			} else if (isFirst) {
-				instructionLabel.add(Label.newLabel(String.format("%5s", bb.getName()) + " ¦£¦¡" + address + " : "));
+				instructionLabel.add(Label.newLabel(String.format("%5s", bb.getName()) + " â”Œâ”€" + address + " : "));
 			} else if (isLast) {
-				instructionLabel.add(Label.newLabel("      ¦¦¦¡" + address + " : "));
+				instructionLabel.add(Label.newLabel("      â””â”€" + address + " : "));
 			} else {
-				instructionLabel.add(Label.newLabel("      ¦¢ " + address + " : "));
+				instructionLabel.add(Label.newLabel("      â”‚ " + address + " : "));
 			}
 		} else {
 			instructionLabel.add(Label.newLabel("        " + address + " : "));

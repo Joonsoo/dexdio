@@ -211,7 +211,7 @@ public class ControlFlowStructuralizer extends Augmentation {
 			
 			this.block = block;
 			this.cases = new ArrayList<Pair<Integer, Pair<ControlFlowStructure, Boolean>>>();
-			// cases: °ª -> (ÇÚµé·¯(maybe null) -> break(trueÀÌ¸é break, falseÀÌ¸é fallthrough))
+			// cases: ê°’ -> (í•¸ë“¤ëŸ¬(maybe null) -> break(trueì´ë©´ break, falseì´ë©´ fallthrough))
 			this.next = null;
 		}
 		
@@ -599,7 +599,7 @@ public class ControlFlowStructuralizer extends Augmentation {
 			}
 		}
 		case SWITCH: {
-			// TODO blocks¿¡¼­ pointer·Î ¿À´Â ¿§Áö°¡ ÀÖÀ¸¸é loop µûÀ§·Î ¹­¾î¼­ controls·Î Ã³¸®ÇØ ÁÖ¾î¾ß ÇÒµí
+			// TODO blocksì—ì„œ pointerë¡œ ì˜¤ëŠ” ì—£ì§€ê°€ ìˆìœ¼ë©´ loop ë”°ìœ„ë¡œ ë¬¶ì–´ì„œ controlsë¡œ ì²˜ë¦¬í•´ ì£¼ì–´ì•¼ í• ë“¯
 			throw new UnsupportedStructureException("Switch");
 		}
 		case GOTO: {

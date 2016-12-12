@@ -41,7 +41,7 @@ import com.giyeok.dexdio.model.insns.DexInstruction;
 import com.giyeok.dexdio.util.ArraysUtil;
 
 /**
- * data flow analysis °á°ú¸¦ ÀÌ¿ëÇÏ¿© »ó¼ö·Î »ç¿ëµÇ´Â ¿ÀÆÛ·£µå¸¦ Ã£´Â´Ù
+ * data flow analysis ê²°ê³¼ë¥¼ ì´ìš©í•˜ì—¬ ìƒìˆ˜ë¡œ ì‚¬ìš©ë˜ëŠ” ì˜¤í¼ëœë“œë¥¼ ì°¾ëŠ”ë‹¤
  * 
  * @author Joonsoo
  *
@@ -176,7 +176,7 @@ public class DataFlowAnalyzer extends Augmentation {
 		}
 		
 		/**
-		 * register¸¦ ´Ù¸¥ ·¹Áö½ºÅÍ³ª »ó¼ö·Î Ä¡È¯ÇÒ ¼ö ÀÖÀ¸¸é Ä¡È¯ÇÒ ´Ù¸¥ ·¹Áö½ºÅÍ³ª »ó¼ö¸¦ ¹İÈ¯ÇÏ°í, Ä¡È¯ÇÒ ¼ö ¾øÀ¸¸é nullÀ» ¹İÈ¯ÇÑ´Ù
+		 * registerë¥¼ ë‹¤ë¥¸ ë ˆì§€ìŠ¤í„°ë‚˜ ìƒìˆ˜ë¡œ ì¹˜í™˜í•  ìˆ˜ ìˆìœ¼ë©´ ì¹˜í™˜í•  ë‹¤ë¥¸ ë ˆì§€ìŠ¤í„°ë‚˜ ìƒìˆ˜ë¥¼ ë°˜í™˜í•˜ê³ , ì¹˜í™˜í•  ìˆ˜ ì—†ìœ¼ë©´ nullì„ ë°˜í™˜í•œë‹¤
 		 * @param register
 		 * @return
 		 */
@@ -263,7 +263,7 @@ public class DataFlowAnalyzer extends Augmentation {
 				for (int i = 0; i < sem.length; i++) {
 					process(sem[i]);
 					
-					// outs.get(sem[i])¸¦ sem[i] ´ÙÀ½¿¡ ºĞ±âµÉ ¼ö ÀÖ´Â ÁöÁ¡ÀÇ ins¿¡ º´ÇÕ
+					// outs.get(sem[i])ë¥¼ sem[i] ë‹¤ìŒì— ë¶„ê¸°ë  ìˆ˜ ìˆëŠ” ì§€ì ì˜ insì— ë³‘í•©
 					Map<DexRegister, Set<InstSemOperand>> out = outs.get(sem[i]);
 					if (out != null) {
 						for (DexInstruction j: sem[i].getInstruction().getPossibleNextInstructions()) {
@@ -331,8 +331,8 @@ public class DataFlowAnalyzer extends Augmentation {
 										upd = true;
 									}
 								} else if (rhs instanceof InstSemRegister) {
-									// TODO rhs°¡ InstSemLHSÀÌ¸é arrayop, instancefield, staticfield¸¦ ¸ğµÎ Ä¡È¯ÇÑ´Ù.
-									// ÇÏÁö¸¸ register ¿Ü¿¡ LHS¿¡ ÇØ´çÇÏ´Â arrayop, instancefield, staticfieldµµ ´ÜÀÏ ½º·¹µå¿¡¼± ¹®Á¦°¡ ¾øÁö¸¸ ¸ÖÆ¼ ½º·¹µåÀÏ °æ¿ì ¹®Á¦°¡ ¹ß»ıÇÒ ¿©Áö°¡ ÀÖÀ½
+									// TODO rhsê°€ InstSemLHSì´ë©´ arrayop, instancefield, staticfieldë¥¼ ëª¨ë‘ ì¹˜í™˜í•œë‹¤.
+									// í•˜ì§€ë§Œ register ì™¸ì— LHSì— í•´ë‹¹í•˜ëŠ” arrayop, instancefield, staticfieldë„ ë‹¨ì¼ ìŠ¤ë ˆë“œì—ì„  ë¬¸ì œê°€ ì—†ì§€ë§Œ ë©€í‹° ìŠ¤ë ˆë“œì¼ ê²½ìš° ë¬¸ì œê°€ ë°œìƒí•  ì—¬ì§€ê°€ ìˆìŒ
 									boolean allReplacable = true;
 									final MethodSemantics msem = semantics.getMethodSemantics(codeitem);
 									for (InstSemOperand use: uses) {
@@ -342,7 +342,7 @@ public class DataFlowAnalyzer extends Augmentation {
 											break;
 										}
 
-										// TODO rhs°¡ wide ·¹Áö½ºÅÍÀÎÀÇ µÚÂÊ ·¹Áö½ºÅÍ¸¦ °¡¸®Å³ °æ¿ì Ä¡È¯À» Æ÷±âÇÑ´Ù
+										// TODO rhsê°€ wide ë ˆì§€ìŠ¤í„°ì¸ì˜ ë’¤ìª½ ë ˆì§€ìŠ¤í„°ë¥¼ ê°€ë¦¬í‚¬ ê²½ìš° ì¹˜í™˜ì„ í¬ê¸°í•œë‹¤
 										
 										if (rhs.getStatement() != use.getStatement()) {
 											final DexInstruction starter = rhs.getStatement().getInstruction();

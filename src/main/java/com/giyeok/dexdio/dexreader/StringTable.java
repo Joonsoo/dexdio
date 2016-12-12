@@ -44,7 +44,7 @@ public class StringTable {
 	}
 
 	/**
-	 * ÀüÃ¼ ¹®ÀÚ¿­ÀÇ °¹¼ö¸¦ ¹İÈ¯ÇÑ´Ù
+	 * ì „ì²´ ë¬¸ìì—´ì˜ ê°¯ìˆ˜ë¥¼ ë°˜í™˜í•œë‹¤
 	 * @return
 	 */
 	public int size() {
@@ -52,7 +52,7 @@ public class StringTable {
 	}
 	
 	/**
-	 * i¹ø ¹®ÀÚ¿­ÀÇ ÁöÁ¤µÈ ±æÀÌ¸¦ ¹İÈ¯ÇÑ´Ù
+	 * ië²ˆ ë¬¸ìì—´ì˜ ì§€ì •ëœ ê¸¸ì´ë¥¼ ë°˜í™˜í•œë‹¤
 	 * @param i
 	 * @return
 	 */
@@ -62,7 +62,7 @@ public class StringTable {
 	}
 	
 	/**
-	 * i¹ø ¹®ÀÚ¿­À» ¹İÈ¯ÇÑ´Ù
+	 * ië²ˆ ë¬¸ìì—´ì„ ë°˜í™˜í•œë‹¤
 	 * @param i
 	 * @return
 	 */

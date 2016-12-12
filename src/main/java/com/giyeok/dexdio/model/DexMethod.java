@@ -14,7 +14,7 @@ public class DexMethod {
 	private DexParameter parameters[];
 	private DexAnnotations annotations;
 	private DexAccessFlags accessFlags;
-	private MethodKind methodKind;		// directmethod¿Ã∏È true, virtual method¿Ã∏È false
+	private MethodKind methodKind;		// directmethodÏù¥Î©¥ true, virtual methodÏù¥Î©¥ false
 	private DexCodeItem codeitem;
 	
 	public static enum MethodKind {

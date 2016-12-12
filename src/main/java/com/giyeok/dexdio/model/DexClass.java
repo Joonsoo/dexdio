@@ -27,9 +27,9 @@ public abstract class DexClass extends DexMethodContainingType {
 	}
 	
 	/**
-	 * ÀÌ Å¬·¡½º°¡ descendantÀÇ °èº¸¿¡ Æ÷ÇÔµÈ ancestor Å¬·¡½ºÀÌ¸é true¸¦ ¹İÈ¯ÇÑ´Ù.
-	 * ¸ğµç Å¬·¡½º´Â ½º½º·ÎÀÇ ancestorÀÌ°í, Å¬·¡½º °èº¸µµ¿¡´Â ÀÎÅÍÆäÀÌ½ºµµ °í·ÁµÈ´Ù
-	 * external class³¢¸®ÀÇ ºñ±³µµ °¡´ÉÇÏµµ·Ï ¼öÁ¤ÇØ¾ßÇÔ
+	 * ì´ í´ë˜ìŠ¤ê°€ descendantì˜ ê³„ë³´ì— í¬í•¨ëœ ancestor í´ë˜ìŠ¤ì´ë©´ trueë¥¼ ë°˜í™˜í•œë‹¤.
+	 * ëª¨ë“  í´ë˜ìŠ¤ëŠ” ìŠ¤ìŠ¤ë¡œì˜ ancestorì´ê³ , í´ë˜ìŠ¤ ê³„ë³´ë„ì—ëŠ” ì¸í„°í˜ì´ìŠ¤ë„ ê³ ë ¤ëœë‹¤
+	 * external classë¼ë¦¬ì˜ ë¹„êµë„ ê°€ëŠ¥í•˜ë„ë¡ ìˆ˜ì •í•´ì•¼í•¨
 	 * @param descendant
 	 * @return
 	 */
@@ -62,7 +62,7 @@ public abstract class DexClass extends DexMethodContainingType {
 	private String packageName = null, className = null;
 	
 	public String getPackageName() {
-		// TODO ÆĞÅ°Áö ÀÌ¸§ÀÌ ¾ø´Â Å¬·¡½º´Â ¾î¶»°Ô µÇ´ÂÁö È®ÀÎ
+		// TODO íŒ¨í‚¤ì§€ ì´ë¦„ì´ ì—†ëŠ” í´ë˜ìŠ¤ëŠ” ì–´ë–»ê²Œ ë˜ëŠ”ì§€ í™•ì¸
 		if (packageName == null) {
 			String typeName = getTypeName();
 			packageName = Utils.joinStrings(".", typeName.substring(1, typeName.lastIndexOf('/')).split("/"));
@@ -80,7 +80,7 @@ public abstract class DexClass extends DexMethodContainingType {
 	
 	@Override
 	public String getTypeFullNameBeauty() {
-		// TODO ÆĞÅ°Áö ÀÌ¸§ÀÌ ¾ø´Â Å¬·¡½º´Â ¾î¶»°Ô µÇ´ÂÁö È®ÀÎ
+		// TODO íŒ¨í‚¤ì§€ ì´ë¦„ì´ ì—†ëŠ” í´ë˜ìŠ¤ëŠ” ì–´ë–»ê²Œ ë˜ëŠ”ì§€ í™•ì¸
 		return getPackageName() + "." + getClassName();
 	}
 

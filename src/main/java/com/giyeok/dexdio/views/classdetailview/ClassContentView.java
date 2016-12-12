@@ -32,8 +32,8 @@ import com.giyeok.dexdio.widgets.LabelListWidget;
 
 
 /**
- * Å¬·¡½ºÀÇ ³»¿ëÀ» ÅØ½ºÆ®·Î º¸ÀÌ´Â ¸®½ºÆ®.
- * ÅØ½ºÆ®·Î º¹»ç(³ªÁß¿¡ Ãâ·Â) ±â´Éµµ Ãß°¡!
+ * í´ëž˜ìŠ¤ì˜ ë‚´ìš©ì„ í…ìŠ¤íŠ¸ë¡œ ë³´ì´ëŠ” ë¦¬ìŠ¤íŠ¸.
+ * í…ìŠ¤íŠ¸ë¡œ ë³µì‚¬(ë‚˜ì¤‘ì— ì¶œë ¥) ê¸°ëŠ¥ë„ ì¶”ê°€!
  * @author joonsoo
  *
  */
@@ -250,7 +250,7 @@ public class ClassContentView extends GroupedLabelListWidget {
 		
 		items.add(Label.newEmptyLabel());
 		
-		// classAnnotations Ãß°¡ÇØ¾ß ÇÔ
+		// classAnnotations ì¶”ê°€í•´ì•¼ í•¨
 		addLabelsForAnnotations(showing.getAnnotations(), "");
 		
 		// title
@@ -271,7 +271,7 @@ public class ClassContentView extends GroupedLabelListWidget {
 		
 		if (showing.getSuperClass() != null) {
 			Label superclassLabel = Label.newLabel(showing.getSuperClass().getTypeShortNameBeauty());
-			// superclassLabel¿¡ ÀÌº¥Æ® Ãß°¡
+			// superclassLabelì— ì´ë²¤íŠ¸ ì¶”ê°€
 			items.add(Label.newLabel(new Label[] {
 					Label.newLabel("        extends ", ColorConstants.darkGreen),
 					superclassLabel
@@ -282,7 +282,7 @@ public class ClassContentView extends GroupedLabelListWidget {
 		if (interfaces.length > 0) {
 			for (int i = 0; i < interfaces.length; i++) {
 				Label interfaceLabel = Label.newLabel(interfaces[i].getTypeShortNameBeauty());
-				// interfaceLabel¿¡ ÀÌº¥Æ® Ãß°¡
+				// interfaceLabelì— ì´ë²¤íŠ¸ ì¶”ê°€
 				
 				if (i < interfaces.length - 1) {
 					interfaceLabel = Label.newLabel(new Label[] {

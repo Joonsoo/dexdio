@@ -38,7 +38,7 @@ public class DexProgram {
 		
 		primTypes = new HashMap<Character, DexPrimitiveType>();
 		
-		// Å¸ÀÔ µî·Ï
+		// íƒ€ì… ë“±ë¡
 		typeCount = typeTable.size();
 		types = new DexType[typeCount];
 		for (int i = 0; i < typeCount; i++) {
@@ -82,19 +82,19 @@ public class DexProgram {
 		}
 		assert k == types.length;
 		
-		// ÇÊµå µî·Ï
+		// í•„ë“œ ë“±ë¡
 		fields = new DexField[fieldTable.size()];
 		for (int i = 0; i < fieldTable.size(); i++) {
 			fields[i] = new DexField(this, i, fieldTable.get(i));
 		}
 		
-		// ¸Ş¼Òµå µî·Ï
+		// ë©”ì†Œë“œ ë“±ë¡
 		methods = new DexMethod[methodTable.size()];
 		for (int i = 0; i < methodTable.size(); i++) {
 			methods[i] = new DexMethod(this, i, methodTable.get(i));
 		}
 		
-		// Å¬·¡½º·ÎºÎÅÍ °¢ ¿ä¼Ò ¿¬°á
+		// í´ë˜ìŠ¤ë¡œë¶€í„° ê° ìš”ì†Œ ì—°ê²°
 		for (int i = 0; i < types.length; i++) {
 			if (types[i] instanceof DexClass) {
 				((DexClass) types[i]).bondWithOthers();
@@ -130,7 +130,7 @@ public class DexProgram {
 	}
 	
 	private void registerDefaultClasses(String typeName, DexType type) {
-		// »ó½Ã »ç¿ë Å¬·¡½º µî·Ï
+		// ìƒì‹œ ì‚¬ìš© í´ë˜ìŠ¤ ë“±ë¡
 		if (typeName.equals("Ljava/lang/String;")) {
 			stringClass = (DexClass) type;
 		}

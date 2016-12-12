@@ -20,7 +20,7 @@ import com.giyeok.dexdio.model.insns.DexInstruction;
 import com.giyeok.dexdio.util.GraphUtil;
 
 /**
- * Control flow graph Á¤º¸¸¦ ÃßÃâÇÑ´Ù
+ * Control flow graph ì •ë³´ë¥¼ ì¶”ì¶œí•œë‹¤
  * 
  * @author Joonsoo
  *
@@ -178,8 +178,8 @@ public class ControlFlowAnalyzer extends Augmentation {
 		
 		public static interface CodeSetVisitor<T> {
 			/**
-			 * instructionÀ» ¹æ¹®ÇÑ´Ù.
-			 * true¸¦ ¹İÈ¯ÇÏ¸é ¹æ¹®À» °è¼ÓÇÏ°í, false¸¦ ¹İÈ¯ÇÏ¸é ¹æ¹®À» Áß´ÜÇÑ´Ù
+			 * instructionì„ ë°©ë¬¸í•œë‹¤.
+			 * trueë¥¼ ë°˜í™˜í•˜ë©´ ë°©ë¬¸ì„ ê³„ì†í•˜ê³ , falseë¥¼ ë°˜í™˜í•˜ë©´ ë°©ë¬¸ì„ ì¤‘ë‹¨í•œë‹¤
 			 * @param instruction
 			 * @param progress
 			 * @return
@@ -283,14 +283,14 @@ public class ControlFlowAnalyzer extends Augmentation {
 		public ControlFlowAnalysis(DexCodeItem codeitem) {
 			this.codeitem = codeitem;
 			
-			final boolean reviseExceptionBlock = true;			// trueÀÌ¸é ¿¹¿ÜÃ³¸®·Î ÀÎÇØ ¹ß»ıÇÏ´Â ºí·°À» ¾ÕµÚ·Î È®ÀåÇÏ¿© ºí·Ï ¼ö¸¦ ÁÙÀÏ ¼ö ÀÖ´Â °æ¿ì ±×·¸°Ô ÇÑ´Ù
+			final boolean reviseExceptionBlock = true;			// trueì´ë©´ ì˜ˆì™¸ì²˜ë¦¬ë¡œ ì¸í•´ ë°œìƒí•˜ëŠ” ë¸”ëŸ­ì„ ì•ë’¤ë¡œ í™•ì¥í•˜ì—¬ ë¸”ë¡ ìˆ˜ë¥¼ ì¤„ì¼ ìˆ˜ ìˆëŠ” ê²½ìš° ê·¸ë ‡ê²Œ í•œë‹¤
 			DexInstruction instructions[] = codeitem.getInstructionsArray();
 			boolean blockStarter[] = new boolean[instructions.length];
 			
 			Arrays.fill(blockStarter, false);
 			blockStarter[0] = true;
 			
-			// 1. Á¦¾î Èå¸§¿¡ ÀÇÇØ ºí·ÏÀÌ ½ÃÀÛµÉ À§Ä¡ ¼³Á¤
+			// 1. ì œì–´ íë¦„ì— ì˜í•´ ë¸”ë¡ì´ ì‹œì‘ë  ìœ„ì¹˜ ì„¤ì •
 			for (int i = 0; i < instructions.length; i++) {
 				int gothroughs[] = instructions[i].getPossibleGoThroughs();
 				
@@ -305,7 +305,7 @@ public class ControlFlowAnalyzer extends Augmentation {
 				}
 			}
 			
-			// 2. ÇÚµé·¯¿¡ ÀÇÇØ ºí·°ÀÌ ³ª´µ´Â °÷ ¼³Á¤
+			// 2. í•¸ë“¤ëŸ¬ì— ì˜í•´ ë¸”ëŸ­ì´ ë‚˜ë‰˜ëŠ” ê³³ ì„¤ì •
 			Handler[] handlers = codeitem.getHandlers();
 			if (handlers != null) {
 				for (Handler handler: handlers) {
@@ -315,7 +315,7 @@ public class ControlFlowAnalyzer extends Augmentation {
 				}
 			}
 			
-			// 3. catch ºí·° ¼³Á¤
+			// 3. catch ë¸”ëŸ­ ì„¤ì •
 			Try[] tries = codeitem.getTries();
 			if (tries != null) {
 				for (Try tri: tries) {
@@ -356,7 +356,7 @@ public class ControlFlowAnalyzer extends Augmentation {
 				}
 			}
 			
-			// 4. monitor-enter¿Í exitÀÌ ÇÏ³ªÀÇ ºí·Ï ÀüÃ¼¸¦ Â÷ÁöÇÏµµ·Ï ºí·Ï Ãß°¡
+			// 4. monitor-enterì™€ exitì´ í•˜ë‚˜ì˜ ë¸”ë¡ ì „ì²´ë¥¼ ì°¨ì§€í•˜ë„ë¡ ë¸”ë¡ ì¶”ê°€
 			for (int i = 1; i < instructions.length - 1; i++) {
 				if (instructions[i] instanceof DexInstMonitor) {
 					blockStarter[i] = true;
@@ -364,7 +364,7 @@ public class ControlFlowAnalyzer extends Augmentation {
 				}
 			}
 			
-			// 5. º£ÀÌÁ÷ ºí·° ¼³Á¤
+			// 5. ë² ì´ì§ ë¸”ëŸ­ ì„¤ì •
 			ArrayList<DexInstruction> basicBlock = new ArrayList<DexInstruction>();
 			int blockCounter = 0;
 			
@@ -381,7 +381,7 @@ public class ControlFlowAnalyzer extends Augmentation {
 			addBasicBlock("" + (++blockCounter), basicBlock.toArray(new DexInstruction[0]));
 			basicBlock = null;
 			
-			// 6. Á¦¾î Èå¸§¿¡ ÀÇÇÑ ¿§Áö ¼³Á¤
+			// 6. ì œì–´ íë¦„ì— ì˜í•œ ì—£ì§€ ì„¤ì •
 			edges = new HashSet<ControlFlowAnalyzer.ControlFlowAnalysis.Edge>();
 			for (int i = 0; i < instructions.length; i++) {
 				int gothroughs[] = instructions[i].getPossibleGoThroughs();
@@ -396,7 +396,7 @@ public class ControlFlowAnalyzer extends Augmentation {
 				}
 			}
 			
-			// 7. ÇÚµé·¯ ºí·Ï ¼³Á¤
+			// 7. í•¸ë“¤ëŸ¬ ë¸”ë¡ ì„¤ì •
 			if (tries != null) {
 				for (Try tri: tries) {
 					HandlerItem handleritems[] = tri.getHandler().getHandlerItems();
@@ -428,7 +428,7 @@ public class ControlFlowAnalyzer extends Augmentation {
 				}
 			}
 			
-			// °³¹ß ÄÚµå: ¼Ó¼º °ËÁõ
+			// ê°œë°œ ì½”ë“œ: ì†ì„± ê²€ì¦
 			for (int i = 0; i < instructions.length; i++) {
 				assert (! blockStarter[i]) || (blockStarter[i] && (! (instructions[i] instanceof DexInstMoveResult)));
 			}
