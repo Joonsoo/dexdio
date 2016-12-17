@@ -3,6 +3,7 @@ package com.giyeok.dexdio.model2
 import com.giyeok.dexdio.dexreader.DalvikExecutable
 import com.giyeok.dexdio.dexreader.structs.encoded_field
 import com.giyeok.dexdio.dexreader.structs.encoded_method
+import com.giyeok.dexdio.dexreader.ClassTable.AnnotationsInfo
 
 class DexProgram(dex: DalvikExecutable) {
     val stringTable = dex.getStringTable()
@@ -85,6 +86,9 @@ class DexProgram(dex: DalvikExecutable) {
             DexMethod0(methodId, methodName, paramTypes, returnType)
         }
 
+    private def noneIfNull[T](value: T) =
+        if (value == null) None else Some(value)
+
     val classes = {
         val fieldIdsByCls = (0 until fieldTable.size()) groupBy { fieldId =>
             fieldTable.get(fieldId).getClassIdx()
@@ -116,22 +120,46 @@ class DexProgram(dex: DalvikExecutable) {
                 }
 
                 // defaultValue, annotations만 하면 될듯
+
+                def decodeAnnotations(annotations: AnnotationsInfo#Annotations): DexAnnotations =
+                    ???
+
+                val annotationsInfo = classDef.getAnnotations()
+                val classAnnotations = noneIfNull(annotationsInfo.getAnnotationsOnClass()) map { decodeAnnotations _ }
+                val fieldAnnotationsMap = annotationsInfo.getAnnotationsOnFields() map { fa =>
+                    fa.field_idx() -> decodeAnnotations(fa.annotations())
+                } toMap
+                val methodAnnotationsMap = annotationsInfo.getAnnotationsOnMethods() map { ma =>
+                    ma.method_idx() -> decodeAnnotations(ma.annotations())
+                } toMap
+                val paramAnnotationsMap = annotationsInfo.getAnnotationsOnParameters() map { pa =>
+                    pa.method_idx() -> ((0 until pa.length()) map { i => noneIfNull(pa.get(i)) map { decodeAnnotations _ } })
+                } toMap
+
+                check(fieldAnnotationsMap.keys forall { fieldId => fieldTable.get(fieldId).getClassIdx == classId })
+                check(methodAnnotationsMap.keys forall { methodId => methodTable.get(methodId).getClassIdx == classId })
+                check(paramAnnotationsMap forall { pa =>
+                    val (methodId, paramAnnots) = pa
+                    (methodTable.get(methodId).getClassIdx() == classId) &&
+                        (methods(methodId).paramTypes.length == paramAnnots.length)
+                })
+
                 // codeitem하고..
 
-                def extractEncodedField(efield: encoded_field): (Option[DexAnnotations], DexAccessFlags) =
-                    (???, DexAccessFlags(efield.access_flags()))
+                def extractEncodedField(fieldId: Int, efield: encoded_field): (Option[DexAnnotations], DexAccessFlags) =
+                    (fieldAnnotationsMap get fieldId, DexAccessFlags(efield.access_flags()))
                 val staticFields = decodeFields(class_data.static_fields()) { (field0, efield) =>
                     val defaultValue = ???
-                    val (annotations, accessFlags) = extractEncodedField(efield)
+                    val (annotations, accessFlags) = extractEncodedField(field0.fieldId, efield)
                     DexStaticField(field0.fieldId, field0.fieldName, field0.fieldType, defaultValue, annotations, accessFlags)
                 }
                 val instanceFields = decodeFields(class_data.instance_fields()) { (field0, efield) =>
-                    val (annotations, accessFlags) = extractEncodedField(efield)
+                    val (annotations, accessFlags) = extractEncodedField(field0.fieldId, efield)
                     DexInstanceField(field0.fieldId, field0.fieldName, field0.fieldType, annotations, accessFlags)
                 }
                 val inheritedFields = ((fieldIdsByCls(classId) -- ((staticFields ++ instanceFields) map { _.fieldId })) map { fieldId =>
                     val field0 = fields(fieldId)
-                    val annotations = ???
+                    val annotations = fieldAnnotationsMap get fieldId
                     DexInheritedField(field0.fieldId, field0.fieldName, field0.fieldType, annotations)
                 }).toSeq sortBy { _.fieldId }
 
@@ -145,29 +173,34 @@ class DexProgram(dex: DalvikExecutable) {
                     result
                 }
 
+                def extractMethod0(method0: DexMethod0) = {
+                    val annotations: Option[DexAnnotations] = methodAnnotationsMap get method0.methodId
+                    val parameters: Seq[DexParameter] = paramAnnotationsMap get method0.methodId match {
+                        case Some(paramAnnots) =>
+                            assert(method0.paramTypes.size == paramAnnots.size)
+                            (method0.paramTypes zip paramAnnots) map { pa => DexParameter(pa._1, pa._2) }
+                        case None =>
+                            method0.paramTypes map { DexParameter(_, None) }
+                    }
+                    (annotations, parameters)
+                }
                 def extractEncodedMethod(emethod: encoded_method) = {
-                    val annotations: Option[DexAnnotations] = ???
                     val accessFlags: DexAccessFlags = DexAccessFlags(emethod.access_flags())
-                    val parameters: Seq[DexParameter] = ???
-                    val codeitemNullable = emethod.code_item()
-                    val codeitem: Option[DexCodeItem] =
-                        if (codeitemNullable == null) None
-                        else Some(???)
-                    (annotations, accessFlags, parameters, codeitem)
+                    val codeitem = noneIfNull(emethod.code_item()) map { _ => ??? }
+                    (accessFlags, codeitem)
                 }
                 val directMethods = dexMethodsFrom(class_data.direct_methods()) { (method0, emethod) =>
-                    val (annotations, accessFlags, parameters, codeitem) = extractEncodedMethod(emethod)
+                    val (annotations, parameters) = extractMethod0(method0)
+                    val (accessFlags, codeitem) = extractEncodedMethod(emethod)
                     DexDirectMethod(method0.methodId, method0.methodName, parameters, method0.returnType, annotations, accessFlags, codeitem)
                 }
                 val virtualMethods = dexMethodsFrom(class_data.virtual_methods()) { (method0, emethod) =>
-                    val (annotations, accessFlags, parameters, codeitem) = extractEncodedMethod(emethod)
+                    val (annotations, accessFlags, parameters, codeitem) = extractEncodedMethod(method0, emethod)
                     DexVirtualMethod(method0.methodId, method0.methodName, parameters, method0.returnType, annotations, accessFlags, codeitem)
                 }
                 val inheritedMethods = (methodIdsByCls(classId) -- ((directMethods ++ virtualMethods) map { _.methodId })) map { methodId =>
                     val method0 = methods(methodId)
-                    // DexMethod
-                    val annotations = ???
-                    val parameters = ???
+                    val (annotations, parameters) = extractMethod0(method0)
                     DexInheritedMethod(method0.methodId, method0.methodName, parameters, method0.returnType, annotations)
                 }
             }

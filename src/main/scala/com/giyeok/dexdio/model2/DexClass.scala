@@ -37,7 +37,6 @@ case class DexInstanceField(
 
 case class DexParameter(
     paramType: DexType,
-    paramName: String,
     annotations: Option[DexAnnotations] /* reigster: DexCodeItem#DexRegister */ )
 
 sealed trait DexMethod {
