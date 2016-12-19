@@ -27,5 +27,7 @@ javaOptions in run := {
   if (sys.props("os.name") == "Mac OS X") Seq("-XstartOnFirstThread", "-d64") else Seq()
 }
 
+javacOptions in compile ++= Seq("-encoding", "UTF-8")
+
 EclipseKeys.relativizeLibs := false
 EclipseKeys.withSource := true

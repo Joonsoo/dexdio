@@ -2,7 +2,6 @@ package com.giyeok.dexdio.model;
 
 import java.util.ArrayList;
 
-import com.giyeok.dexdio.Utils;
 import com.giyeok.dexdio.dexreader.ClassTable.AnnotationsInfo;
 import com.giyeok.dexdio.dexreader.ClassTable.AnnotationsInfo.FieldAnnotations;
 import com.giyeok.dexdio.dexreader.ClassTable.AnnotationsInfo.MethodAnnotations;

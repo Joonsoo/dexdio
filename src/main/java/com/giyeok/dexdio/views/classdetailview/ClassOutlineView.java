@@ -4,7 +4,6 @@ import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Composite;
 
-import com.giyeok.dexdio.Utils;
 import com.giyeok.dexdio.dexreader.value.Value;
 import com.giyeok.dexdio.model.DexClass;
 import com.giyeok.dexdio.model.DexField;

@@ -11,7 +11,6 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
 import com.giyeok.dexdio.MainView;
-import com.giyeok.dexdio.Utils;
 import com.giyeok.dexdio.dexreader.ClassTable;
 import com.giyeok.dexdio.dexreader.ClassTable.ClassDef;
 import com.giyeok.dexdio.dexreader.DalvikExecutable;

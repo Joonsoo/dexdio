@@ -13,47 +13,47 @@ sealed trait DexType {
 }
 
 sealed trait DexPrimitiveType extends DexType
-case class DexVoid(typeId: Int) extends DexPrimitiveType {
+case class DexVoidType(typeId: Int) extends DexPrimitiveType {
     val typeName = "V"
     val javaTypeName = "void"
     val isWide = false
 }
-case class DexBoolean(typeId: Int) extends DexPrimitiveType {
+case class DexBooleanType(typeId: Int) extends DexPrimitiveType {
     val typeName = "A"
     val javaTypeName = "boolean"
     val isWide = false
 }
-case class DexByte(typeId: Int) extends DexPrimitiveType {
+case class DexByteType(typeId: Int) extends DexPrimitiveType {
     val typeName = "B"
     val javaTypeName = "byte"
     val isWide = false
 }
-case class DexShort(typeId: Int) extends DexPrimitiveType {
+case class DexShortType(typeId: Int) extends DexPrimitiveType {
     val typeName = "S"
     val javaTypeName = "short"
     val isWide = false
 }
-case class DexChar(typeId: Int) extends DexPrimitiveType {
+case class DexCharType(typeId: Int) extends DexPrimitiveType {
     val typeName = "C"
     val javaTypeName = "char"
     val isWide = false
 }
-case class DexInt(typeId: Int) extends DexPrimitiveType {
+case class DexIntType(typeId: Int) extends DexPrimitiveType {
     val typeName = "I"
     val javaTypeName = "int"
     val isWide = false
 }
-case class DexLong(typeId: Int) extends DexPrimitiveType {
+case class DexLongType(typeId: Int) extends DexPrimitiveType {
     val typeName = "J"
     val javaTypeName = "long"
     val isWide = true
 }
-case class DexFloat(typeId: Int) extends DexPrimitiveType {
+case class DexFloatType(typeId: Int) extends DexPrimitiveType {
     val typeName = "F"
     val javaTypeName = "float"
     val isWide = false
 }
-case class DexDouble(typeId: Int) extends DexPrimitiveType {
+case class DexDoubleType(typeId: Int) extends DexPrimitiveType {
     val typeName = "D"
     val javaTypeName = "double"
     val isWide = true

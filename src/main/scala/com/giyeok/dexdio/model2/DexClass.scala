@@ -1,5 +1,7 @@
 package com.giyeok.dexdio.model2
 
+import com.giyeok.dexdio.dexreader.structs.code_item
+
 case class DexField0(fieldId: Int, fieldName: String, fieldType: DexType)
 case class DexMethod0(methodId: Int, methodName: String, paramTypes: Seq[DexType], returnType: DexType)
 
@@ -7,7 +9,9 @@ case class DexAccessFlags(value: Int) {
 
 }
 
-trait DexCodeItem
+case class DexCodeItem(codeItem: code_item) {
+
+}
 
 // inherited field/method에 annotations가 있을 수 있을까? 없을거같은데..
 
@@ -69,16 +73,39 @@ case class DexVirtualMethod(
     codeitem: Option[DexCodeItem]) extends DexMethod
 
 // type, field, method 등이 모두 만들어진 후에 그것들을 묶어서 쓰기 쉽게 클래스 단위로 묶음
-class DexClass(
+sealed trait DexClass {
+    val classId: Int
+    val typeId: Int
+    val className: String
+    val accessFlags: DexAccessFlags
+}
+
+class DexDefinedClass(
         val classId: Int,
+        val typeId: Int,
         val className: String,
-        val superClass: Option[DexClass],
-        val implements: Seq[DexClass],
+        val accessFlags: DexAccessFlags,
+        val annotations: Option[DexAnnotations],
+        val superClass: Option[DexClassType],
+        val implements: Seq[DexClassType],
         val inheritedFields: Seq[DexInheritedField],
         val staticFields: Seq[DexStaticField],
         val instanceFields: Seq[DexInstanceField],
         val inheritedMethods: Seq[DexInheritedMethod],
         val directMethods: Seq[DexDirectMethod],
-        val virtualMethods: Seq[DexVirtualMethod]) {
+        val virtualMethods: Seq[DexVirtualMethod]) extends DexClass {
+
+    val fields: Seq[DexField] = (inheritedFields ++ staticFields ++ instanceFields) sortBy { _.fieldId }
+    val methods: Seq[DexMethod] = (inheritedMethods ++ directMethods ++ virtualMethods) sortBy { _.methodId }
+}
+
+class DexMarkerClass(
+        val classId: Int,
+        val typeId: Int,
+        val className: String,
+        val accessFlags: DexAccessFlags,
+        val annotations: Option[DexAnnotations],
+        val superClass: Option[DexClassType],
+        val implements: Seq[DexClassType]) extends DexClass {
 
 }

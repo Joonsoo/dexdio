@@ -11,7 +11,6 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 
-import com.giyeok.dexdio.Utils;
 import com.giyeok.dexdio.augmentation.DataFlowAnalyzer;
 import com.giyeok.dexdio.augmentation.DeadCodeCollector;
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemanticizer;
@@ -27,9 +26,7 @@ import com.giyeok.dexdio.views.classdetailview.ClassContentView.OccurrenceMarkin
 import com.giyeok.dexdio.widgets.GroupedLabelListWidget;
 import com.giyeok.dexdio.widgets.Label;
 import com.giyeok.dexdio.widgets.Label.TextLabel;
-import com.giyeok.dexdio.widgets.LabelClickListener;
 import com.giyeok.dexdio.widgets.LabelListWidget;
-
 
 /**
  * 클래스의 내용을 텍스트로 보이는 리스트.
@@ -196,7 +193,7 @@ public class ClassContentView extends GroupedLabelListWidget {
 		return set;
 	}
 	
-	public static class OccurrenceMarkingClickListener<E> implements LabelClickListener {
+	public static class OccurrenceMarkingClickListener<E> implements com.giyeok.dexdio.widgets.LabelClickListener {
 		private Color color1;
 		private Color color2;
 		private Set<Label> labels;
