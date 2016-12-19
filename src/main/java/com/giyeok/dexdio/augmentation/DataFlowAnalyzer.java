@@ -459,7 +459,7 @@ public class DataFlowAnalyzer extends Augmentation {
 			
 			for (InstSemOperand gen: gens) {
 				if (! edges.contains(new InstSemElementEdge(gen, use))) {
-					System.out.println(use.getStringRepresentation() + " uses " + gen.getStringRepresentation());
+					// System.out.println(use.getStringRepresentation() + " uses " + gen.getStringRepresentation());
 				}
 				addEdge(gen, use);
 			}

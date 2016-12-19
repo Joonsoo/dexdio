@@ -243,8 +243,8 @@ public class DexCodeItem {
 			}
 		}
 		
-		System.out.println(belonged.getBelongedType().getTypeFullNameBeauty() + "." + belonged.getName());
-		System.out.println(belonged.getBelongedType().getTypeId() + " " + belonged.getMethodId());
+		// System.out.println(belonged.getBelongedType().getTypeFullNameBeauty() + "." + belonged.getName());
+		// System.out.println(belonged.getBelongedType().getTypeId() + " " + belonged.getMethodId());
 		disassemble(code.insns(), code.insns_size());
 	}
 	

@@ -160,7 +160,7 @@ public class OperandTypeInferer extends Augmentation {
 					getProgressOf(arrayref).add(((DexArrayType) type).getElementType());
 					// System.out.println(((DexArrayType) type).getElementType().getTypeFullNameBeauty());
 				} else {
-					System.out.println("Why! " + type.getTypeFullNameBeauty());
+					// System.out.println("Why! " + type.getTypeFullNameBeauty());
 				}
 			}
 			return false;

@@ -33,35 +33,25 @@ import com.giyeok.dexdio.views.classdetailview.DexClassDetailViewer;
 
 public class MainView {
 	private DexProgram program;
-	
+
 	private TabFolder tabFolder;
-	
+
 	private DexClassesViewer classes;
 	private DexClassDetailViewer classDetail;
 	private DexMethodDetailViewer methodDetail;
 	private DexFieldDetailView fieldDetail;
 	private AugmentationMessagesViewer augmsgViewer;
-	
+
 	private Shell shell;
-	
-	public MainView(DalvikExecutable dex, final Shell shell) {
+
+	public MainView(DalvikExecutable dex, DexProgram program, final Shell shell) {
 		this.shell = shell;
 		shell.setLayout(new FillLayout());
 		shell.setText("Dexdio: " + dex.getFilepath());
 		shell.setBounds(100, 100, 800, 600);
-		
+
 		tabFolder = new TabFolder(shell, SWT.NONE);
-		
-		try {
-			program = new DexProgram(dex);
-		} catch (DexException e) {
-			program = null;
-			MessageBox msg = new MessageBox(shell);
-			msg.setMessage("Failed to load dex file, reason: " + e.getMessage());
-			msg.open();
-			e.printStackTrace();
-		}
-		
+
 		addToTab("Dex Structure", new DexHexStructureViewer(tabFolder, this, dex).getTabFolder());
 		if (program != null) {
 			InstructionSemanticizer.get(program);
@@ -70,25 +60,25 @@ public class MainView {
 			DataFlowAnalyzer.get(program);
 			OperandTypeInferer.get(program);
 			ControlFlowStructuralizer.get(program);
-			
+
 			classes = new DexClassesViewer(this, tabFolder, program);
 			addToTab("Classes", classes.getContentControl());
-			
+
 			classDetail = new DexClassDetailViewer(this, tabFolder, program);
 			addToTab("Class", classDetail.getContentControl());
-			
+
 			methodDetail = new DexMethodDetailViewer(this, tabFolder, program);
 			addToTab("Method", methodDetail.getContentControl());
-			
+
 			fieldDetail = new DexFieldDetailView(this, tabFolder, program);
 			addToTab("Field", fieldDetail.getContentControl());
-			
+
 			augmsgViewer = new AugmentationMessagesViewer(this, tabFolder, program);
 			addToTab("AugMsg", augmsgViewer);
-			
+
 			tabFolder.setSelection(1);
 			tabFolder.addSelectionListener(new SelectionAdapter() {
-				
+
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					if (tabFolder.getSelectionIndex() == 5) {
@@ -102,9 +92,9 @@ public class MainView {
 			InstructionSemanticizer.get(program);
 			DataFlowAnalyzer.get(program);
 		}
-		
+
 		shell.addDisposeListener(new DisposeListener() {
-			
+
 			@Override
 			public void widgetDisposed(DisposeEvent e) {
 				tabFolder.dispose();
@@ -113,22 +103,22 @@ public class MainView {
 		});
 		shell.open();
 	}
-	
+
 	private void addToTab(String title, Control content) {
 		TabItem tabItem = new TabItem(tabFolder, SWT.NONE);
 		tabItem.setText(title);
 		tabItem.setControl(content);
 	}
-	
+
 	public Shell getShell() {
 		return shell;
 	}
-	
+
 	public void openClassDetail(DexClass target) {
 		classDetail.showClass(target);
 		tabFolder.setSelection(2);
 	}
-	
+
 	public void openMethodDetail(DexMethod target) {
 		classDetail.showMethod(target);
 		tabFolder.setSelection(2);

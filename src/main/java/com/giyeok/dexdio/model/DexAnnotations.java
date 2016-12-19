@@ -1,6 +1,5 @@
 package com.giyeok.dexdio.model;
 
-import com.giyeok.dexdio.dexreader.ClassTable.AnnotationsInfo.Annotations;
 import com.giyeok.dexdio.dexreader.structs.annotation_item;
 import com.giyeok.dexdio.dexreader.value.Value;
 
@@ -9,7 +8,7 @@ public class DexAnnotations {
 	private DexProgram program;
 	private DexAnnotationItem items[];
 	
-	public DexAnnotations(DexProgram program, Annotations annotations) {
+	public DexAnnotations(DexProgram program, com.giyeok.dexdio.dexreader.ClassTable.AnnotationsInfo.Annotations annotations) {
 		annotation_item items[] = annotations.annotations();
 		
 		this.program = program;

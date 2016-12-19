@@ -2,7 +2,7 @@ lazy val root = (project in file(".")).
     settings(
         name := "dexdio",
         version := "0.1",
-        scalaVersion := "2.11.8"
+        scalaVersion := "2.12.1"
         )
 
 resolvers += "swt-repo" at "http://maven-eclipse.github.io/maven"
@@ -28,6 +28,10 @@ javaOptions in run := {
 }
 
 javacOptions in compile ++= Seq("-encoding", "UTF-8")
+
+fork in run := true
+
+// javaOptions in run += "-agentlib:hprof=cpu=samples"
 
 EclipseKeys.relativizeLibs := false
 EclipseKeys.withSource := true
