@@ -32,6 +32,3 @@ javacOptions in compile ++= Seq("-encoding", "UTF-8")
 fork in run := true
 
 // javaOptions in run += "-agentlib:hprof=cpu=samples"
-
-EclipseKeys.relativizeLibs := false
-EclipseKeys.withSource := true
