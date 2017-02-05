@@ -1,7 +1,5 @@
 package com.giyeok.dexdio.model2
 
-import com.giyeok.dexdio.dexreader.structs.encoded_value
-
 sealed trait DexValue
 
 case class DexByteValue(value: Byte) extends DexValue

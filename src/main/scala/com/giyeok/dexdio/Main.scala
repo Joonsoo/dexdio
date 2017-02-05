@@ -37,7 +37,7 @@ object Main {
                     new MainView(dex, program1, new Shell(display))
                 }
 
-                while (!(mainViews forall { _.getShell().isDisposed() })) {
+                while (!(mainViews forall { _.getShell.isDisposed() })) {
                     if (!display.readAndDispatch()) {
                         display.sleep()
                     }

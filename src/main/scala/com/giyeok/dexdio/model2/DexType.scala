@@ -1,7 +1,5 @@
 package com.giyeok.dexdio.model2
 
-import com.giyeok.dexdio.model._
-
 case class InvalidDexTypeException() extends Exception
 
 sealed trait DexType {
