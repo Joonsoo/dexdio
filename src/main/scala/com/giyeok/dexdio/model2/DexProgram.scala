@@ -1,34 +1,50 @@
 package com.giyeok.dexdio.model2
 
+import scala.collection.immutable.IndexedSeq
+import com.giyeok.dexdio.dexreader.ClassTable
+import com.giyeok.dexdio.dexreader.ClassTable.AnnotationsInfo
 import com.giyeok.dexdio.dexreader.DalvikExecutable
+import com.giyeok.dexdio.dexreader.FieldTable
+import com.giyeok.dexdio.dexreader.MethodTable
+import com.giyeok.dexdio.dexreader.ProtoTable
+import com.giyeok.dexdio.dexreader.StringTable
+import com.giyeok.dexdio.dexreader.TypeTable
+import com.giyeok.dexdio.dexreader.structs.encoded_annotation
+import com.giyeok.dexdio.dexreader.structs.encoded_array
+import com.giyeok.dexdio.dexreader.structs.encoded_array_item
 import com.giyeok.dexdio.dexreader.structs.encoded_field
 import com.giyeok.dexdio.dexreader.structs.encoded_method
-import com.giyeok.dexdio.dexreader.ClassTable.AnnotationsInfo
-import com.giyeok.dexdio.dexreader.structs.encoded_array_item
-import com.giyeok.dexdio.dexreader.structs.encoded_array
 import com.giyeok.dexdio.dexreader.structs.encoded_value
-import com.giyeok.dexdio.dexreader.value.Value
-import com.giyeok.dexdio.dexreader.structs.encoded_annotation
-import com.giyeok.dexdio.dexreader.structs.annotation_item
 
-class DexProgram(dex: DalvikExecutable) {
-    val stringTable = dex.getStringTable()
-    val typeTable = dex.getTypeTable()
-    val protoTable = dex.getProtoTable()
-    val fieldTable = dex.getFieldTable()
-    val methodTable = dex.getMethodTable()
-    val classTable = dex.getClassTable()
+class DexProgram(dexes: IndexedSeq[DalvikExecutable]) {
+    class DexFile(val dexId: Int, dex: DalvikExecutable) {
+        val stringTable: StringTable = dex.getStringTable
+        val typeTable: TypeTable = dex.getTypeTable
+        val protoTable: ProtoTable = dex.getProtoTable
+        val fieldTable: FieldTable = dex.getFieldTable
+        val methodTable: MethodTable = dex.getMethodTable
+        val classTable: ClassTable = dex.getClassTable
+    }
+    val dexFiles: IndexedSeq[DexFile] =
+        dexes.zipWithIndex map { p => new DexFile(p._2, p._1) }
 
     private def check(pred: => Boolean): Unit = {}
 
-    val types: IndexedSeq[DexType] = {
-        val typesMap = ((0 until typeTable.size()) map { i =>
-            i -> typeTable.getTypeName(i)
-        }).toMap
+    val types: Map[Id, DexType] = {
+        val typesMap: Map[Id, String] =
+            (dexFiles flatMap { dex =>
+                (0 until dex.typeTable.size()) map { i =>
+                    Id(dex.dexId, i) -> dex.typeTable.getTypeName(i)
+                }
+            }).toMap
         check(typesMap.values.toSeq.distinct == typesMap.values.toSeq)
-        val reverseTypesMap = typesMap map { kv => kv._2 -> kv._1 }
+        val reverseTypesMap = typesMap map { kv => (kv._2, kv._1) }
 
-        def dexTypeOf(typeName: String, typeId: Int): DexType =
+        println(typesMap)
+        println(reverseTypesMap)
+        println()
+
+        def dexTypeOf(typeName: String, typeId: Id): DexType =
             (typeName.charAt(0), typeName) match {
                 case ('V', "V") => DexVoidType(typeId)
                 case ('Z', "Z") => DexBooleanType(typeId)
@@ -40,10 +56,10 @@ class DexProgram(dex: DalvikExecutable) {
                 case ('F', "F") => DexFloatType(typeId)
                 case ('D', "D") => DexDoubleType(typeId)
                 case ('L', lClassName) =>
-                    val classDef = classTable.getClassDefByTypeId(typeId)
+                    val classDef = dexFiles(typeId.dexId).classTable.getClassDefByTypeId(typeId.itemId)
                     if (classDef != null) {
-                        check(classDef.getClassTypeId() == typeId)
-                        check(typeTable.getTypeName(classDef.getClassTypeId) == typeName)
+                        check(classDef.getClassTypeId == typeId.itemId)
+                        check(dexFiles(typeId.dexId).typeTable.getTypeName(classDef.getClassTypeId) == typeName)
                         DexInternalClassType(typeId, lClassName)
                     } else {
                         DexExternalClassType(typeId, lClassName)
@@ -53,133 +69,139 @@ class DexProgram(dex: DalvikExecutable) {
                         reverseTypesMap get elemTypeName match {
                             case Some(elemTypeId) => dexTypeOf(elemTypeName, elemTypeId)
                             case None =>
-                                if (elemTypeName.charAt(0) == '[') {
-                                    DexArrayType(typeId, elemType(elemTypeName.substring(1)))
-                                } else {
-                                    throw InvalidDexTypeException()
+                                elemTypeName.charAt(0) match {
+                                    case '[' => DexArrayType(typeId, elemType(elemTypeName.substring(1)))
+                                    case 'L' => DexUnspecifiedClassType(elemTypeName)
+                                    case _ => throw InvalidDexTypeException(elemTypeName)
                                 }
                         }
                     DexArrayType(typeId, elemType(arrayType.substring(1)))
                 case _ => ???
             }
-        (0 until typeTable.size()) map { i =>
-            dexTypeOf(typeTable.getTypeName(i), i)
-        }
+        (dexFiles flatMap { dex =>
+            (0 until dex.typeTable.size()) map { i =>
+                val id = Id(dex.dexId, i)
+                id -> dexTypeOf(dex.typeTable.getTypeName(i), id)
+            }
+        }).toMap
     }
 
-    val fields =
-        (0 until fieldTable.size()) map { fieldId =>
-            val fieldDef = fieldTable.get(fieldId)
-            val fieldType = types(fieldDef.getTypeIdx())
-            val fieldName = fieldDef.getName()
-            DexField0(fieldId, fieldName, fieldType)
+    val fields: IndexedSeq[DexField0] =
+        dexFiles flatMap { dex =>
+            (0 until dex.fieldTable.size()) map { fieldId =>
+                val fieldDef = dex.fieldTable.get(fieldId)
+                val fieldType = types(Id(dex.dexId, fieldDef.getTypeIdx))
+                val fieldName = fieldDef.getName
+                DexField0(Id(dex.dexId, fieldId), fieldName, fieldType)
+            }
         }
 
-    val methods =
-        (0 until methodTable.size()) map { methodId =>
-            val methodDef = methodTable.get(methodId)
-            val methodName = methodDef.getName()
-            val methodProto = methodDef.getProto()
-            val paramTypes = (0 until methodProto.getParametersCount()) map { i => types(methodProto.getParameter(i)) }
-            val returnType = types(methodProto.getReturnTypeIdx())
-            DexMethod0(methodId, methodName, paramTypes, returnType)
+    val methods: IndexedSeq[DexMethod0] =
+        dexFiles flatMap { dex =>
+            (0 until dex.methodTable.size()) map { methodId =>
+                val methodDef = dex.methodTable.get(methodId)
+                val methodName = methodDef.getName
+                val methodProto = methodDef.getProto
+                val paramTypes = (0 until methodProto.getParametersCount) map { i => types(Id(dex.dexId, methodProto.getParameter(i))) }
+                val returnType = types(Id(dex.dexId, methodProto.getReturnTypeIdx))
+                DexMethod0(Id(dex.dexId, methodId), methodName, paramTypes, returnType)
+            }
         }
 
-    private def noneIfNull[T](value: T) =
-        if (value == null) None else Some(value)
-
-    private def decodeDexValue(v: encoded_value): DexValue = {
+    private def decodeDexValue(dex: DexFile, v: encoded_value): DexValue = {
         import com.giyeok.dexdio.dexreader.value
-        v.getValueType() match {
+        v.getValueType match {
             case encoded_value.VALUE_BYTE =>
-                DexByteValue(v.getValue().asInstanceOf[value.Byte].getValue)
+                DexByteValue(v.getValue.asInstanceOf[value.Byte].getValue)
             case encoded_value.VALUE_SHORT =>
-                DexShortValue(v.getValue().asInstanceOf[value.Short].getValue)
+                DexShortValue(v.getValue.asInstanceOf[value.Short].getValue)
             case encoded_value.VALUE_CHAR =>
-                DexCharValue(v.getValue().asInstanceOf[value.Short].getValue.toChar)
+                DexCharValue(v.getValue.asInstanceOf[value.Short].getValue.toChar)
             case encoded_value.VALUE_INT =>
-                DexIntValue(v.getValue().asInstanceOf[value.Int].getValue)
+                DexIntValue(v.getValue.asInstanceOf[value.Int].getValue)
             case encoded_value.VALUE_LONG =>
-                DexLongValue(v.getValue().asInstanceOf[value.Long].getValue)
+                DexLongValue(v.getValue.asInstanceOf[value.Long].getValue)
             case encoded_value.VALUE_FLOAT =>
-                DexFloatValue(v.getValue().asInstanceOf[value.Float].getValue)
+                DexFloatValue(v.getValue.asInstanceOf[value.Float].getValue)
             case encoded_value.VALUE_DOUBLE =>
-                DexDoubleValue(v.getValue().asInstanceOf[value.Double].getValue)
+                DexDoubleValue(v.getValue.asInstanceOf[value.Double].getValue)
             case encoded_value.VALUE_STRING =>
-                DexStringValue(stringTable.get(v.getValue().asInstanceOf[value.Int].getValue))
+                DexStringValue(dex.stringTable.get(v.getValue.asInstanceOf[value.Int].getValue))
             case encoded_value.VALUE_TYPE =>
-                DexTypeValue(types(v.getValue().asInstanceOf[value.Int].getValue))
+                DexTypeValue(types(Id(dex.dexId, v.getValue.asInstanceOf[value.Int].getValue)))
             case encoded_value.VALUE_FIELD =>
-                DexFieldValue(fields(v.getValue().asInstanceOf[value.Int].getValue))
+                DexFieldValue(fields(v.getValue.asInstanceOf[value.Int].getValue))
             case encoded_value.VALUE_METHOD =>
-                DexMethodValue(methods(v.getValue().asInstanceOf[value.Int].getValue))
+                DexMethodValue(methods(v.getValue.asInstanceOf[value.Int].getValue))
             case encoded_value.VALUE_ENUM =>
-                DexEnumValue(fields(v.getValue().asInstanceOf[value.Int].getValue))
+                DexEnumValue(fields(v.getValue.asInstanceOf[value.Int].getValue))
             case encoded_value.VALUE_ARRAY =>
-                val elems = v.getValue().asInstanceOf[encoded_array].values()
-                DexArrayValue((0 until elems.length) map { i => decodeDexValue(elems(i)) })
+                val elems = v.getValue.asInstanceOf[encoded_array].values()
+                DexArrayValue((0 until elems.length) map { i => decodeDexValue(dex, elems(i)) })
             case encoded_value.VALUE_ANNOTATION =>
-                val annots = decodeEncodedAnnotation(v.getValue().asInstanceOf[encoded_annotation])
+                val annots = decodeEncodedAnnotation(dex, v.getValue.asInstanceOf[encoded_annotation])
                 DexAnnotationValue(annots)
             case encoded_value.VALUE_NULL =>
                 DexNullValue
             case encoded_value.VALUE_BOOLEAN =>
-                DexBooleanValue(v.getValue().asInstanceOf[value.Byte].getValue == 1)
+                DexBooleanValue(v.getValue.asInstanceOf[value.Byte].getValue == 1)
         }
     }
 
-    private def decodeEncodedAnnotation(annot: encoded_annotation) =
+    private def decodeEncodedAnnotation(dex: DexFile, annot: encoded_annotation) =
         (annot.elements() map { e =>
-            stringTable.get(e.name_idx()) -> decodeDexValue(e.value())
+            dex.stringTable.get(e.name_idx()) -> decodeDexValue(dex, e.value())
         }).toSeq
 
-    private def decodeAnnotations(annotations: AnnotationsInfo#Annotations): DexAnnotations = {
+    private def decodeAnnotations(dex: DexFile, annotations: AnnotationsInfo#Annotations): DexAnnotations = {
         DexAnnotations(annotations.annotations() map { annot =>
-            DexAnnotationItem(annot.visibility(), decodeEncodedAnnotation(annot.annotation()))
+            DexAnnotationItem(annot.visibility(), decodeEncodedAnnotation(dex, annot.annotation()))
         })
     }
 
-    val classes = {
-        val fieldIdsByCls = (0 until fieldTable.size()) groupBy { fieldId =>
-            fieldTable.get(fieldId).getClassIdx()
+    private implicit val ord = Id
+
+    val classes: Map[Id, DexClass] = (dexFiles flatMap { dex =>
+        val fieldIdsByCls = (0 until dex.fieldTable.size()) groupBy { fieldId =>
+            dex.fieldTable.get(fieldId).getClassIdx
         } mapValues { _.toSet }
 
-        val methodIdsByCls = (0 until methodTable.size()) groupBy { methodId =>
-            methodTable.get(methodId).getClassIdx()
+        val methodIdsByCls = (0 until dex.methodTable.size()) groupBy { methodId =>
+            dex.methodTable.get(methodId).getClassIdx
         } mapValues { _.toSet }
 
         // TODO 클래스가 아닌 타입을 가리키고 있으면 문제
 
-        (0 until classTable.size()) map { classId =>
-            val classDef = classTable.getClassByClassId(classId)
-            val classTypeId = classDef.getClassTypeId()
-            check(classDef.getClassTypeName().length() > 0 && classDef.getClassTypeName().charAt(0) == 'L')
-            val accessFlags = DexAccessFlags(classDef.getAccessFlags())
-            val className = classDef.getClassTypeName()
+        (0 until dex.classTable.size()) map { classId =>
+            val classDef = dex.classTable.getClassByClassId(classId)
+            val classTypeId = classDef.getClassTypeId
+            check(classDef.getClassTypeName.length() > 0 && classDef.getClassTypeName.charAt(0) == 'L')
+            val accessFlags = DexAccessFlags(classDef.getAccessFlags)
+            val className = classDef.getClassTypeName
             val superClass: Option[DexClassType] = classDef.getSuperclassTypeId match {
                 case -1 => None
-                case superClassTypeId => Some(types(superClassTypeId).asInstanceOf[DexClassType])
+                case superClassTypeId => Some(types(Id(dex.dexId, superClassTypeId)).asInstanceOf[DexClassType])
             }
             val implements: Seq[DexClassType] = classDef.getInterfaceTypeIds match {
                 case null => Seq()
-                case implementTypes => implementTypes map { types(_).asInstanceOf[DexClassType] }
+                case implementTypes => implementTypes map { itemId => types(Id(dex.dexId, itemId)).asInstanceOf[DexClassType] }
             }
-            val sourceFile: Option[String] = noneIfNull(classDef.getSourceFileName())
+            val sourceFile: Option[String] = Option(classDef.getSourceFileName)
 
-            val (classAnnotations: Option[DexAnnotations], fieldAnnotationsMap: Map[Int, DexAnnotations], methodAnnotationsMap: Map[Int, DexAnnotations], paramAnnotationsMap: Map[Int, IndexedSeq[Option[DexAnnotations]]]) = classDef.getAnnotations() match {
+            val (classAnnotations: Option[DexAnnotations], fieldAnnotationsMap: Map[Int, DexAnnotations], methodAnnotationsMap: Map[Int, DexAnnotations], paramAnnotationsMap: Map[Int, IndexedSeq[Option[DexAnnotations]]]) = classDef.getAnnotations match {
                 case null =>
                     (None, Map(), Map(), Map())
                 case annotationsInfo =>
-                    val classAnnotations = noneIfNull(annotationsInfo.getAnnotationsOnClass()) map { decodeAnnotations _ }
-                    val fieldAnnotationsMap = annotationsInfo.getAnnotationsOnFields() map { fa =>
-                        fa.field_idx() -> decodeAnnotations(fa.annotations())
-                    } toMap
-                    val methodAnnotationsMap = annotationsInfo.getAnnotationsOnMethods() map { ma =>
-                        ma.method_idx() -> decodeAnnotations(ma.annotations())
-                    } toMap
-                    val paramAnnotationsMap = annotationsInfo.getAnnotationsOnParameters() map { pa =>
-                        pa.method_idx() -> ((0 until pa.length()) map { i => noneIfNull(pa.get(i)) map { decodeAnnotations _ } })
-                    } toMap
+                    val classAnnotations = Option(annotationsInfo.getAnnotationsOnClass) map { decodeAnnotations(dex, _) }
+                    val fieldAnnotationsMap = (annotationsInfo.getAnnotationsOnFields map { fa =>
+                        fa.field_idx() -> decodeAnnotations(dex, fa.annotations())
+                    }).toMap
+                    val methodAnnotationsMap = (annotationsInfo.getAnnotationsOnMethods map { ma =>
+                        ma.method_idx() -> decodeAnnotations(dex, ma.annotations())
+                    }).toMap
+                    val paramAnnotationsMap = (annotationsInfo.getAnnotationsOnParameters map { pa =>
+                        pa.method_idx() -> ((0 until pa.length()) map { i => Option(pa.get(i)) map { decodeAnnotations(dex, _) } })
+                    }).toMap
 
                     (classAnnotations, fieldAnnotationsMap, methodAnnotationsMap, paramAnnotationsMap)
             }
@@ -191,7 +213,7 @@ class DexProgram(dex: DalvikExecutable) {
                     val static_values: encoded_array = static_values_item.value()
                     val values: IndexedSeq[encoded_value] = static_values.values().toIndexedSeq
                     check(values.length == static_values.size())
-                    values map { decodeDexValue _ }
+                    values map { decodeDexValue(dex, _) }
                 } else {
                     IndexedSeq()
                 }
@@ -217,11 +239,11 @@ class DexProgram(dex: DalvikExecutable) {
 
                 // defaultValue, annotations만 하면 될듯
 
-                check(fieldAnnotationsMap.keys forall { fieldId => fieldTable.get(fieldId).getClassIdx == classId })
-                check(methodAnnotationsMap.keys forall { methodId => methodTable.get(methodId).getClassIdx == classId })
+                check(fieldAnnotationsMap.keys forall { fieldId => dex.fieldTable.get(fieldId).getClassIdx == classId })
+                check(methodAnnotationsMap.keys forall { methodId => dex.methodTable.get(methodId).getClassIdx == classId })
                 check(paramAnnotationsMap forall { pa =>
                     val (methodId, paramAnnots) = pa
-                    (methodTable.get(methodId).getClassIdx() == classId) &&
+                    (dex.methodTable.get(methodId).getClassIdx == classId) &&
                         (methods(methodId).paramTypes.length == paramAnnots.length)
                 })
 
@@ -230,19 +252,19 @@ class DexProgram(dex: DalvikExecutable) {
 
                 val staticFields = decodeFields(class_data.static_fields()) { (idx, field0, efield) =>
                     val defaultValue = if (idx < staticValues.length) Some(staticValues(idx)) else None
-                    val (annotations, accessFlags) = extractEncodedField(field0.fieldId, efield)
+                    val (annotations, accessFlags) = extractEncodedField(field0.fieldId.itemId, efield)
                     DexStaticField(field0.fieldId, field0.fieldName, field0.fieldType, defaultValue, annotations, accessFlags)
                 }
                 check(staticValues.length <= staticFields.length)
                 // check if every staticFields and Values matches type
 
                 val instanceFields = decodeFields(class_data.instance_fields()) { (idx, field0, efield) =>
-                    val (annotations, accessFlags) = extractEncodedField(field0.fieldId, efield)
+                    val (annotations, accessFlags) = extractEncodedField(field0.fieldId.itemId, efield)
                     DexInstanceField(field0.fieldId, field0.fieldName, field0.fieldType, annotations, accessFlags)
                 }
 
                 val inheritedFields = {
-                    val definedFieldIds = ((staticFields ++ instanceFields) map { _.fieldId }).toSet
+                    val definedFieldIds = ((staticFields ++ instanceFields) map { _.fieldId.itemId }).toSet
                     ((fieldIdsByCls.getOrElse(classId, Set()) -- definedFieldIds) map { fieldId =>
                         val field0 = fields(fieldId)
                         val annotations = fieldAnnotationsMap get fieldId
@@ -261,8 +283,8 @@ class DexProgram(dex: DalvikExecutable) {
                 }
 
                 def extractMethod0(method0: DexMethod0) = {
-                    val annotations: Option[DexAnnotations] = methodAnnotationsMap get method0.methodId
-                    val parameters: Seq[DexParameter] = paramAnnotationsMap get method0.methodId match {
+                    val annotations: Option[DexAnnotations] = methodAnnotationsMap get method0.methodId.itemId
+                    val parameters: Seq[DexParameter] = paramAnnotationsMap get method0.methodId.itemId match {
                         case Some(paramAnnots) =>
                             assert(method0.paramTypes.size == paramAnnots.size)
                             (method0.paramTypes zip paramAnnots) map { pa => DexParameter(pa._1, pa._2) }
@@ -273,7 +295,7 @@ class DexProgram(dex: DalvikExecutable) {
                 }
                 def extractEncodedMethod(emethod: encoded_method) = {
                     val accessFlags: DexAccessFlags = DexAccessFlags(emethod.access_flags())
-                    val codeitem = noneIfNull(emethod.code_item()) map { DexCodeItem(_) }
+                    val codeitem = Option(emethod.code_item()) map DexCodeItem
                     (accessFlags, codeitem)
                 }
                 val directMethods = dexMethodsFrom(class_data.direct_methods()) { (method0, emethod) =>
@@ -287,7 +309,7 @@ class DexProgram(dex: DalvikExecutable) {
                     DexVirtualMethod(method0.methodId, method0.methodName, parameters, method0.returnType, annotations, accessFlags, codeitem)
                 }
                 val inheritedMethods = {
-                    val definedMethodIds = ((directMethods ++ virtualMethods) map { _.methodId }).toSet
+                    val definedMethodIds = ((directMethods ++ virtualMethods) map { _.methodId.itemId }).toSet
                     ((methodIdsByCls.getOrElse(classId, Set()) -- definedMethodIds) map { methodId =>
                         val method0 = methods(methodId)
                         val (annotations, parameters) = extractMethod0(method0)
@@ -296,7 +318,7 @@ class DexProgram(dex: DalvikExecutable) {
                 }
 
                 new DexDefinedClass(
-                    classId, classTypeId, className,
+                    Id(dex.dexId, classId), Id(dex.dexId, classTypeId), className,
                     accessFlags,
                     classAnnotations,
                     superClass,
@@ -306,22 +328,24 @@ class DexProgram(dex: DalvikExecutable) {
                     instanceFields,
                     inheritedMethods,
                     directMethods,
-                    virtualMethods)
+                    virtualMethods
+                )
             } else {
                 check(fieldAnnotationsMap.isEmpty)
                 check(methodAnnotationsMap.isEmpty)
                 check(paramAnnotationsMap.isEmpty)
                 check(staticValues.isEmpty)
                 new DexMarkerClass(
-                    classId, classTypeId, className,
+                    Id(dex.dexId, classId), Id(dex.dexId, classTypeId), className,
                     accessFlags,
                     classAnnotations,
                     superClass,
-                    implements)
+                    implements
+                )
             }
         }
-    }
+    } map { c => c.classId -> c }).toMap
 
-    lazy val classByType = (classes map { c => (types(c.typeId).asInstanceOf[DexClassType] -> c) }).toMap
-    lazy val fieldByName = (fields map { f => (f.fieldName -> f) }).toMap
+    lazy val classByType: Map[DexClassType, DexClass] = (classes map { c => types(c._1).asInstanceOf[DexClassType] -> c._2 })
+    lazy val fieldByName: Map[String, DexField0] = (fields map { f => f.fieldName -> f }).toMap
 }
