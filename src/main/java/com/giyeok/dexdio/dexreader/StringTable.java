@@ -11,7 +11,7 @@ public class StringTable {
 	private int[] stringLengths;
 	private String[] stringTable;
 	
-	boolean loadStrings(header_item header, EndianRandomAccessFile file) throws IOException {
+	boolean loadStrings(header_item header, RandomAccessible file) throws IOException {
 		long string_ids_size = header.string_ids_size();
 		long string_ids_off = header.string_ids_off();
 		

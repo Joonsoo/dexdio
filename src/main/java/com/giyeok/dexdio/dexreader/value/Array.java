@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
+import com.giyeok.dexdio.dexreader.RandomAccessible;
 
 public class Array extends Value {
 	private int length;
@@ -17,7 +18,7 @@ public class Array extends Value {
 	}
 
 	@Override
-	public void read(EndianRandomAccessFile stream) throws IOException {
+	public void read(RandomAccessible stream) throws IOException {
 		try {
 			for (int i = 0; i < length; i++) {
 				array[i] = cls.newInstance();

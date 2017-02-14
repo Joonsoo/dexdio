@@ -1,18 +1,18 @@
 package com.giyeok.dexdio.dexreader.structs;
 
-import java.io.IOException;
-
-import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
+import com.giyeok.dexdio.dexreader.RandomAccessible;
 import com.giyeok.dexdio.dexreader.value.Array;
 import com.giyeok.dexdio.dexreader.value.ULeb128;
 import com.giyeok.dexdio.dexreader.value.Value;
+
+import java.io.IOException;
 
 public class encoded_catch_handler_list extends Value {
 	private ULeb128 size;
 	private Array list;
 
 	@Override
-	public void read(EndianRandomAccessFile stream) throws IOException {
+	public void read(RandomAccessible stream) throws IOException {
 		size = new ULeb128();
 		size.read(stream);
 		

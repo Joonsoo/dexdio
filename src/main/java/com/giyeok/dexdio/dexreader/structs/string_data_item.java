@@ -1,10 +1,10 @@
 package com.giyeok.dexdio.dexreader.structs;
 
-import java.io.IOException;
-
-import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
+import com.giyeok.dexdio.dexreader.RandomAccessible;
 import com.giyeok.dexdio.dexreader.value.ULeb128;
 import com.giyeok.dexdio.dexreader.value.Value;
+
+import java.io.IOException;
 
 public class string_data_item extends Value {
 	private ULeb128 utf16_size;
@@ -16,7 +16,7 @@ public class string_data_item extends Value {
 	}
 
 	@Override
-	public void read(EndianRandomAccessFile stream) throws IOException {
+	public void read(RandomAccessible stream) throws IOException {
 		int length;
 		
 		utf16_size.read(stream);

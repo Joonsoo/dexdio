@@ -7,7 +7,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -20,7 +19,6 @@ import com.giyeok.dexdio.augmentation.ReferenceCollector;
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemanticizer;
 import com.giyeok.dexdio.dexreader.DalvikExecutable;
 import com.giyeok.dexdio.model.DexClass;
-import com.giyeok.dexdio.model.DexException;
 import com.giyeok.dexdio.model.DexField;
 import com.giyeok.dexdio.model.DexMethod;
 import com.giyeok.dexdio.model.DexProgram;
@@ -47,7 +45,7 @@ public class MainView {
 	public MainView(DalvikExecutable dex, DexProgram program, final Shell shell) {
 		this.shell = shell;
 		shell.setLayout(new FillLayout());
-		shell.setText("Dexdio: " + dex.getFilepath());
+		shell.setText("Dexdio: " + dex.getName());
 		shell.setBounds(100, 100, 800, 600);
 
 		tabFolder = new TabFolder(shell, SWT.NONE);

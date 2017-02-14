@@ -1,8 +1,8 @@
 package com.giyeok.dexdio.dexreader.value;
 
-import java.io.IOException;
+import com.giyeok.dexdio.dexreader.RandomAccessible;
 
-import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
+import java.io.IOException;
 
 //In a .dex file, LEB128 is only ever used to encode 32-bit quantities
 
@@ -11,7 +11,7 @@ public class ULeb128 extends Value {
 	private int length;
 	
 	@Override
-	public void read(EndianRandomAccessFile stream) throws IOException {
+	public void read(RandomAccessible stream) throws IOException {
 		int b;
 
 		value = 0;

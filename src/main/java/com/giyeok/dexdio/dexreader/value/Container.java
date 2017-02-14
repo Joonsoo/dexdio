@@ -3,6 +3,7 @@ package com.giyeok.dexdio.dexreader.value;
 import java.io.IOException;
 
 import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
+import com.giyeok.dexdio.dexreader.RandomAccessible;
 
 public class Container extends Value {
 	public static class NamedValue {
@@ -22,7 +23,7 @@ public class Container extends Value {
 	}
 
 	@Override
-	public void read(EndianRandomAccessFile stream) throws IOException {
+	public void read(RandomAccessible stream) throws IOException {
 		for (int i = 0; i < fields.length; i++) {
 			fields[i].field.read(stream);
 		}

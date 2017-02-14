@@ -1,11 +1,11 @@
 package com.giyeok.dexdio.dexreader.structs;
 
-import java.io.IOException;
-
-import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
+import com.giyeok.dexdio.dexreader.RandomAccessible;
 import com.giyeok.dexdio.dexreader.value.Array;
 import com.giyeok.dexdio.dexreader.value.ULeb128;
 import com.giyeok.dexdio.dexreader.value.Value;
+
+import java.io.IOException;
 
 public class encoded_annotation extends Value {
 	private ULeb128 type_idx;
@@ -13,7 +13,7 @@ public class encoded_annotation extends Value {
 	private Array elements;
 
 	@Override
-	public void read(EndianRandomAccessFile stream) throws IOException {
+	public void read(RandomAccessible stream) throws IOException {
 		type_idx = new ULeb128();
 		size = new ULeb128();
 		

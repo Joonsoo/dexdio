@@ -1,12 +1,12 @@
 package com.giyeok.dexdio.dexreader.structs;
 
-import java.io.IOException;
-
-import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
+import com.giyeok.dexdio.dexreader.RandomAccessible;
 import com.giyeok.dexdio.dexreader.value.Array;
 import com.giyeok.dexdio.dexreader.value.Int;
 import com.giyeok.dexdio.dexreader.value.Short;
 import com.giyeok.dexdio.dexreader.value.Value;
+
+import java.io.IOException;
 
 public class code_item extends Value {
 	private Short registers_size;
@@ -20,7 +20,7 @@ public class code_item extends Value {
 	private encoded_catch_handler_list handlers;
 
 	@Override
-	public void read(EndianRandomAccessFile stream) throws IOException {
+	public void read(RandomAccessible stream) throws IOException {
 		registers_size = new Short();
 		ins_size = new Short();
 		outs_size = new Short();

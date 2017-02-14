@@ -1,15 +1,14 @@
 package com.giyeok.dexdio.dexreader.structs;
 
-import java.io.IOException;
-
-import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
+import com.giyeok.dexdio.dexreader.RandomAccessible;
 import com.giyeok.dexdio.dexreader.value.Byte;
 import com.giyeok.dexdio.dexreader.value.Double;
 import com.giyeok.dexdio.dexreader.value.Float;
-import com.giyeok.dexdio.dexreader.value.Int;
+import com.giyeok.dexdio.dexreader.value.*;
 import com.giyeok.dexdio.dexreader.value.Long;
 import com.giyeok.dexdio.dexreader.value.Short;
-import com.giyeok.dexdio.dexreader.value.Value;
+
+import java.io.IOException;
 
 public class encoded_value extends Value {
 	private Byte value_arg_with_value_type;
@@ -36,7 +35,7 @@ public class encoded_value extends Value {
 	private Value value;
 	
 	@Override
-	public void read(EndianRandomAccessFile stream) throws IOException {
+	public void read(RandomAccessible stream) throws IOException {
 		value_arg_with_value_type = new Byte();
 		value_arg_with_value_type.read(stream);
 		
@@ -132,7 +131,7 @@ public class encoded_value extends Value {
 		}
 	}
 	
-	private long littleEndian(EndianRandomAccessFile stream, int length) throws IOException {
+	private long littleEndian(RandomAccessible stream, int length) throws IOException {
 		byte b[] = new byte[length];
 		
 		stream.readFully(b);

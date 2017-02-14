@@ -1,8 +1,8 @@
 package com.giyeok.dexdio.dexreader.value;
 
-import java.io.IOException;
+import com.giyeok.dexdio.dexreader.RandomAccessible;
 
-import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
+import java.io.IOException;
 
 public class Long extends Value {
 	private long value;
@@ -11,7 +11,7 @@ public class Long extends Value {
 	public Long(long value) { this.value = value; }
 	
 	@Override
-	public void read(EndianRandomAccessFile stream) throws IOException {
+	public void read(RandomAccessible stream) throws IOException {
 		value = stream.readLong();
 	}
 	

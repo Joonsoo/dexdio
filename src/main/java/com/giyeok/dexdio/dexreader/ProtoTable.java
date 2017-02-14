@@ -65,7 +65,7 @@ public class ProtoTable {
 		return protoTable[i];
 	}
 
-	boolean loadProtos(header_item header, EndianRandomAccessFile file) throws IOException {
+	boolean loadProtos(header_item header, RandomAccessible file) throws IOException {
 		int proto_ids_size = (int) header.proto_ids_size();
 		long proto_ids_off = header.proto_ids_off();
 

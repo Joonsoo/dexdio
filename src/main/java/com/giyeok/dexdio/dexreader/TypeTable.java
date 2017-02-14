@@ -13,7 +13,7 @@ public class TypeTable {
 		this.stringTable = stringTable;
 	}
 	
-	boolean loadTypes(header_item header, EndianRandomAccessFile file) throws IOException {
+	boolean loadTypes(header_item header, RandomAccessible file) throws IOException {
 		int type_ids_size = (int) header.type_ids_size();
 		long type_ids_off = header.type_ids_off();
 		

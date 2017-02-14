@@ -3,6 +3,7 @@ package com.giyeok.dexdio.dexreader.value;
 import java.io.IOException;
 
 import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
+import com.giyeok.dexdio.dexreader.RandomAccessible;
 
 public class Int extends Value {
 	private int value;
@@ -11,7 +12,7 @@ public class Int extends Value {
 	public Int(int value) { this.value = value; }
 	
 	@Override
-	public void read(EndianRandomAccessFile stream) throws IOException {
+	public void read(RandomAccessible stream) throws IOException {
 		value = stream.readInt();
 	}
 	

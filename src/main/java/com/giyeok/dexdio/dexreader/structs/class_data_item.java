@@ -1,11 +1,11 @@
 package com.giyeok.dexdio.dexreader.structs;
 
-import java.io.IOException;
-
-import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
+import com.giyeok.dexdio.dexreader.RandomAccessible;
 import com.giyeok.dexdio.dexreader.value.Array;
 import com.giyeok.dexdio.dexreader.value.ULeb128;
 import com.giyeok.dexdio.dexreader.value.Value;
+
+import java.io.IOException;
 
 public class class_data_item extends Value {
 	private ULeb128 static_fields_size;
@@ -18,7 +18,7 @@ public class class_data_item extends Value {
 	private Array virtual_methods;
 	
 	@Override
-	public void read(EndianRandomAccessFile stream) throws IOException {
+	public void read(RandomAccessible stream) throws IOException {
 		static_fields_size = new ULeb128();
 		instance_fields_size = new ULeb128();
 		direct_methods_size = new ULeb128();

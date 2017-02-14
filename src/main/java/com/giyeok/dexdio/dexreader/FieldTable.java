@@ -61,7 +61,7 @@ public class FieldTable {
 		return fieldTable[i];
 	}
 
-	boolean loadFields(header_item header, EndianRandomAccessFile file) throws IOException {
+	boolean loadFields(header_item header, RandomAccessible file) throws IOException {
 		int field_ids_size = (int) header.field_ids_size();
 		long field_ids_off = header.field_ids_off();
 		

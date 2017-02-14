@@ -39,7 +39,7 @@ public class ClassTable {
 		public class Annotations {				// annotation_set_item 에 대응됨
 			annotation_item annotations[];
 			
-			public Annotations(long offset, EndianRandomAccessFile file) throws IOException {
+			public Annotations(long offset, RandomAccessible file) throws IOException {
 				annotation_set_item annotation_set_item = new annotation_set_item();
 
 				file.seek(offset);
@@ -69,7 +69,7 @@ public class ClassTable {
 			private int field_idx;
 			private Annotations annotations;
 			
-			public FieldAnnotations(field_annotation field_annotation, EndianRandomAccessFile file) throws IOException {
+			public FieldAnnotations(field_annotation field_annotation, RandomAccessible file) throws IOException {
 				field_idx = field_annotation.field_idx();
 				annotations = new Annotations(field_annotation.annotations_off(), file);
 			}
@@ -87,7 +87,7 @@ public class ClassTable {
 			private int method_idx;
 			private Annotations annotations;
 			
-			public MethodAnnotations(method_annotation method_annotation, EndianRandomAccessFile file) throws IOException {
+			public MethodAnnotations(method_annotation method_annotation, RandomAccessible file) throws IOException {
 				method_idx = method_annotation.method_idx();
 				annotations = new Annotations(method_annotation.annotations_off(), file);
 			}
@@ -105,7 +105,7 @@ public class ClassTable {
 			private int method_idx;
 			private Annotations[] annotations;
 			
-			public ParametersAnnotations(parameter_annotation parameter_annotation, EndianRandomAccessFile file) throws IOException {
+			public ParametersAnnotations(parameter_annotation parameter_annotation, RandomAccessible file) throws IOException {
 				method_idx = parameter_annotation.method_idx();
 				
 				annotation_set_ref_list annotation_set_ref_list = new annotation_set_ref_list();
@@ -141,7 +141,7 @@ public class ClassTable {
 		MethodAnnotations annotationsOnMethod[];
 		ParametersAnnotations annotationsOnParameters[];
 		
-		public AnnotationsInfo(annotations_directory_item adi, EndianRandomAccessFile file) throws IOException {
+		public AnnotationsInfo(annotations_directory_item adi, RandomAccessible file) throws IOException {
 			if (adi.class_annotations_off() == 0) {
 				annotationsOnClass = null;
 			} else {
@@ -296,7 +296,7 @@ public class ClassTable {
 	
 	private ClassDef classTable[];
 	
-	boolean loadClasses(header_item header, EndianRandomAccessFile file) throws IOException {
+	boolean loadClasses(header_item header, RandomAccessible file) throws IOException {
 		int class_defs_size = (int) header.class_defs_size();
 		long class_defs_off = header.class_defs_off();
 		

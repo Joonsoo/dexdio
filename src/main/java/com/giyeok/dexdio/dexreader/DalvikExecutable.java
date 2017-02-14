@@ -6,30 +6,31 @@
 
 package com.giyeok.dexdio.dexreader;
 
+import java.io.File;
 import java.io.IOException;
 
 import com.giyeok.dexdio.dexreader.structs.header_item;
 
 public class DalvikExecutable {
-	private String filepath;
+	private String name;
 
-	private DalvikExecutable(String filepath) {
-		this.filepath = filepath;
+	private DalvikExecutable(String name) {
+		this.name = name;
 	}
 	
-	public String getFilepath() {
-		return filepath;
+	public String getName() {
+		return name;
 	}
-	
-	public static DalvikExecutable load(String filepath) throws IOException {
-		DalvikExecutable dex = new DalvikExecutable(filepath);
-		
-		if (dex.load(new EndianRandomAccessFile(filepath, "r"))) {
-			return dex;
-		} else {
-			return null;
-		}
-	}
+
+	public static DalvikExecutable load(String name, RandomAccessible input) throws IOException {
+	    DalvikExecutable dex = new DalvikExecutable(name);
+
+        if (dex.load(input)) {
+            return dex;
+        } else {
+            return null;
+        }
+    }
 	
 	private header_item header;
 	private StringTable stringTable;
@@ -67,13 +68,13 @@ public class DalvikExecutable {
 		return classTable;
 	}
 	
-	private boolean load(EndianRandomAccessFile file) throws IOException {
-		file.seek(0);
-		file.setEndian(false);
+	private boolean load(RandomAccessible input) throws IOException {
+		input.seek(0);
+		input.setEndian(false);
 		
 		header = new header_item();
 		
-		header.read(file);
+		header.read(input);
 		
 		if (header.magic().equals(DEX_FILE_MAGIC)) {
 			System.out.println("Magic number is invalid");
@@ -81,7 +82,7 @@ public class DalvikExecutable {
 		}
 		header.checksum();		// TODO implement validation
 		header.signature();		// TODO implement validation
-		if (header.file_size() != file.length()) {
+		if (header.file_size() != input.length()) {
 			System.out.println("File size is invalid");
 			return false;
 		}
@@ -95,37 +96,37 @@ public class DalvikExecutable {
 		}
 		
 		stringTable = new StringTable();
-		if (! (stringTable.loadStrings(header, file))) {
+		if (! (stringTable.loadStrings(header, input))) {
 			System.out.println("Broken or unsupported string table");
 			return false;
 		}
 		
 		typeTable = new TypeTable(stringTable);
-		if (! (typeTable.loadTypes(header, file))) {
+		if (! (typeTable.loadTypes(header, input))) {
 			System.out.println("Broken or unsupported type table");
 			return false;
 		}
 		
 		protoTable = new ProtoTable(stringTable, typeTable);
-		if (! (protoTable.loadProtos(header, file))) {
+		if (! (protoTable.loadProtos(header, input))) {
 			System.out.println("Broken or unsupported proto table");
 			return false;
 		}
 		
 		fieldTable = new FieldTable(stringTable, typeTable);
-		if (! fieldTable.loadFields(header, file)) {
+		if (! fieldTable.loadFields(header, input)) {
 			System.out.println("Broken or unsupported field table");
 			return false;
 		}
 		
 		methodTable = new MethodTable(stringTable, typeTable, protoTable);
-		if (! methodTable.loadMethods(header, file)) {
+		if (! methodTable.loadMethods(header, input)) {
 			System.out.println("Broken or unsupported method table");
 			return false;
 		}
 		
 		classTable = new ClassTable(stringTable, typeTable, protoTable, fieldTable, methodTable);
-		if (! classTable.loadClasses(header, file)) {
+		if (! classTable.loadClasses(header, input)) {
 			System.out.println("Broken or unsupported class table");
 			return false;
 		}

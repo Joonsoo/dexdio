@@ -3,6 +3,7 @@ package com.giyeok.dexdio.dexreader.structs;
 import java.io.IOException;
 
 import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
+import com.giyeok.dexdio.dexreader.RandomAccessible;
 import com.giyeok.dexdio.dexreader.value.Array;
 import com.giyeok.dexdio.dexreader.value.Container;
 import com.giyeok.dexdio.dexreader.value.Int;
@@ -18,7 +19,7 @@ public class annotations_directory_item extends Value {
 	private Array parameter_annotations;
 
 	@Override
-	public void read(EndianRandomAccessFile stream) throws IOException {
+	public void read(RandomAccessible stream) throws IOException {
 		class_annotations_off = new Int();
 		fields_size = new Int();
 		annotated_methods_size = new Int();

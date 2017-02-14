@@ -1,6 +1,5 @@
 package com.giyeok.dexdio.model2
 
-import scala.collection.immutable.IndexedSeq
 import com.giyeok.dexdio.dexreader.ClassTable
 import com.giyeok.dexdio.dexreader.ClassTable.AnnotationsInfo
 import com.giyeok.dexdio.dexreader.DalvikExecutable

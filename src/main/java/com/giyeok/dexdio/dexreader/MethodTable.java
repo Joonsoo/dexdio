@@ -63,7 +63,7 @@ public class MethodTable {
 		return methodTable[i];
 	}
 
-	boolean loadMethods(header_item header, EndianRandomAccessFile file) throws IOException {
+	boolean loadMethods(header_item header, RandomAccessible file) throws IOException {
 		int method_ids_size = (int) header.method_ids_size();
 		long method_ids_off = header.method_ids_off();
 
