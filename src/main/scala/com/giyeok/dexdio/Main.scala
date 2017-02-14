@@ -41,9 +41,10 @@ object Main {
                 val program2 = measure("                                      model2") { new com.giyeok.dexdio.model2.DexProgram(dexes) }
                 val program1 = measure("                                      model1") { new com.giyeok.dexdio.model.DexProgram(dexes.head) }
                 // TODO support multi dex
-                val mainView = new MainView(dexes.head, program1, new Shell(display))
+                val shell = new Shell(display)
+                new MainView(dexes.head, program1, shell)
 
-                while (!mainView.getShell.isDisposed) {
+                while (!shell.isDisposed) {
                     if (!display.readAndDispatch()) {
                         display.sleep()
                     }
