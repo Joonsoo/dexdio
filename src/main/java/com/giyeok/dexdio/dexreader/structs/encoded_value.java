@@ -143,7 +143,7 @@ public class encoded_value extends Value {
 		long l = 0;
 		
 		for (int i = 0; i < b.length; i++) {
-			l |= (b[i] << (i * 8));
+			l |= ((((long) b[i]) & 0xffL) << (i * 8));
 		}
 		return l;
 	}

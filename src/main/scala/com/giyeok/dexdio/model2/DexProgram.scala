@@ -37,6 +37,7 @@ class DexProgram(dexes: IndexedSeq[DalvikExecutable]) {
                     Id(dex.dexId, i) -> dex.typeTable.getTypeName(i)
                 }
             }).toMap
+        // multi dex 어플리케이션에서는 typesMap에 중복이 있을 수 있네
         check(typesMap.values.toSeq.distinct == typesMap.values.toSeq)
         val reverseTypesMap = typesMap map { kv => (kv._2, kv._1) }
 
@@ -323,6 +324,7 @@ class DexProgram(dexes: IndexedSeq[DalvikExecutable]) {
                     classAnnotations,
                     superClass,
                     implements,
+                    sourceFile,
                     inheritedFields,
                     staticFields,
                     instanceFields,
@@ -340,7 +342,8 @@ class DexProgram(dexes: IndexedSeq[DalvikExecutable]) {
                     accessFlags,
                     classAnnotations,
                     superClass,
-                    implements
+                    implements,
+                    sourceFile
                 )
             }
         }

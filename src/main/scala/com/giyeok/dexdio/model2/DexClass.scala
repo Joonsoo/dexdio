@@ -100,6 +100,7 @@ class DexDefinedClass(
         val annotations: Option[DexAnnotations],
         val superClass: Option[DexClassType],
         val implements: Seq[DexClassType],
+        val sourceFile: Option[String],
         val inheritedFields: Seq[DexInheritedField],
         val staticFields: Seq[DexStaticField],
         val instanceFields: Seq[DexInstanceField],
@@ -120,7 +121,8 @@ class DexMarkerClass(
         val accessFlags: DexAccessFlags,
         val annotations: Option[DexAnnotations],
         val superClass: Option[DexClassType],
-        val implements: Seq[DexClassType]
+        val implements: Seq[DexClassType],
+        val sourceFile: Option[String]
 ) extends DexClass {
 
 }
