@@ -27,7 +27,9 @@ class DexProgram(dexes: IndexedSeq[DalvikExecutable]) {
     val dexFiles: IndexedSeq[DexFile] =
         dexes.zipWithIndex map { p => new DexFile(p._2, p._1) }
 
-    private def check(pred: => Boolean): Unit = {}
+    private def check(pred: => Boolean): Unit = {
+        // assert(pred)
+    }
 
     val types: Map[Id, DexType] = {
         val typesMap: Map[Id, String] =
@@ -36,13 +38,9 @@ class DexProgram(dexes: IndexedSeq[DalvikExecutable]) {
                     Id(dex.dexId, i) -> dex.typeTable.getTypeName(i)
                 }
             }).toMap
-        // multi dex 어플리케이션에서는 typesMap에 중복이 있을 수 있네
-        check(typesMap.values.toSeq.distinct == typesMap.values.toSeq)
+        // TODO multi dex 어플리케이션에서는 typesMap에 중복이 있을 수 있음
+        check(typesMap.values.toSet.size == typesMap.values.size)
         val reverseTypesMap = typesMap map { kv => (kv._2, kv._1) }
-
-        println(typesMap)
-        println(reverseTypesMap)
-        println()
 
         def dexTypeOf(typeName: String, typeId: Id): DexType =
             (typeName.charAt(0), typeName) match {
@@ -222,7 +220,7 @@ class DexProgram(dexes: IndexedSeq[DalvikExecutable]) {
             val class_data = classDef.class_data()
             if (class_data != null) {
                 check(class_data.static_fields().length == class_data.static_fields_size())
-                check(class_data.instance_fields().length == class_data.static_fields_size())
+                check(class_data.instance_fields().length == class_data.instance_fields_size())
                 check(class_data.direct_methods().length == class_data.direct_methods_size())
                 check(class_data.virtual_methods().length == class_data.virtual_methods_size())
 
