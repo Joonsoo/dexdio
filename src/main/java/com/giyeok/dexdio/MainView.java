@@ -30,100 +30,100 @@ import com.giyeok.dexdio.views.DexMethodDetailViewer;
 import com.giyeok.dexdio.views.classdetailview.DexClassDetailViewer;
 
 public class MainView {
-	private DexProgram program;
+    private DexProgram program;
 
-	private TabFolder tabFolder;
+    private TabFolder tabFolder;
 
-	private DexClassesViewer classes;
-	private DexClassDetailViewer classDetail;
-	private DexMethodDetailViewer methodDetail;
-	private DexFieldDetailView fieldDetail;
-	private AugmentationMessagesViewer augmsgViewer;
+    private DexClassesViewer classes;
+    private DexClassDetailViewer classDetail;
+    private DexMethodDetailViewer methodDetail;
+    private DexFieldDetailView fieldDetail;
+    private AugmentationMessagesViewer augmsgViewer;
 
-	private Shell shell;
+    private Shell shell;
 
-	public MainView(DalvikExecutable dex, DexProgram program, final Shell shell) {
-		this.shell = shell;
-		shell.setLayout(new FillLayout());
-		shell.setText("Dexdio: " + dex.getName());
-		shell.setBounds(100, 100, 800, 600);
+    public MainView(DalvikExecutable dex, DexProgram program, final Shell shell) {
+        this.shell = shell;
+        shell.setLayout(new FillLayout());
+        shell.setText("Dexdio: " + dex.getName());
+        shell.setBounds(100, 100, 800, 600);
 
-		tabFolder = new TabFolder(shell, SWT.NONE);
+        tabFolder = new TabFolder(shell, SWT.NONE);
 
-		addToTab("Dex Structure", new DexHexStructureViewer(tabFolder, this, dex).getTabFolder());
-		if (program != null) {
-			InstructionSemanticizer.get(program);
-			ControlFlowAnalyzer.get(program).visit();
-			ReferenceCollector.get(program);
-			DataFlowAnalyzer.get(program);
-			OperandTypeInferer.get(program);
-			ControlFlowStructuralizer.get(program);
+        addToTab("Dex Structure", new DexHexStructureViewer(tabFolder, this, dex).getTabFolder());
+//		if (program != null) {
+//			InstructionSemanticizer.get(program);
+//			ControlFlowAnalyzer.get(program).visit();
+//			ReferenceCollector.get(program);
+//			DataFlowAnalyzer.get(program);
+//			OperandTypeInferer.get(program);
+//			ControlFlowStructuralizer.get(program);
+//
+//			classes = new DexClassesViewer(this, tabFolder, program);
+//			addToTab("Classes", classes.getContentControl());
+//
+//			classDetail = new DexClassDetailViewer(this, tabFolder, program);
+//			addToTab("Class", classDetail.getContentControl());
+//
+//			methodDetail = new DexMethodDetailViewer(this, tabFolder, program);
+//			addToTab("Method", methodDetail.getContentControl());
+//
+//			fieldDetail = new DexFieldDetailView(this, tabFolder, program);
+//			addToTab("Field", fieldDetail.getContentControl());
+//
+//			augmsgViewer = new AugmentationMessagesViewer(this, tabFolder, program);
+//			addToTab("AugMsg", augmsgViewer);
+//
+//			tabFolder.setSelection(1);
+//			tabFolder.addSelectionListener(new SelectionAdapter() {
+//
+//				@Override
+//				public void widgetSelected(SelectionEvent e) {
+//					if (tabFolder.getSelectionIndex() == 5) {
+//						// currently augmsgViewer is in index 5
+//						augmsgViewer.update();
+//					}
+//				}
+//			});
+//
+//			// Initialize augmentations
+//			InstructionSemanticizer.get(program);
+//			DataFlowAnalyzer.get(program);
+//		}
 
-			classes = new DexClassesViewer(this, tabFolder, program);
-			addToTab("Classes", classes.getContentControl());
+        shell.addDisposeListener(new DisposeListener() {
 
-			classDetail = new DexClassDetailViewer(this, tabFolder, program);
-			addToTab("Class", classDetail.getContentControl());
+            @Override
+            public void widgetDisposed(DisposeEvent e) {
+                tabFolder.dispose();
+                shell.dispose();
+            }
+        });
+        shell.open();
+    }
 
-			methodDetail = new DexMethodDetailViewer(this, tabFolder, program);
-			addToTab("Method", methodDetail.getContentControl());
+    private void addToTab(String title, Control content) {
+        TabItem tabItem = new TabItem(tabFolder, SWT.NONE);
+        tabItem.setText(title);
+        tabItem.setControl(content);
+    }
 
-			fieldDetail = new DexFieldDetailView(this, tabFolder, program);
-			addToTab("Field", fieldDetail.getContentControl());
+    public Shell getShell() {
+        return shell;
+    }
 
-			augmsgViewer = new AugmentationMessagesViewer(this, tabFolder, program);
-			addToTab("AugMsg", augmsgViewer);
+    public void openClassDetail(DexClass target) {
+        classDetail.showClass(target);
+        tabFolder.setSelection(2);
+    }
 
-			tabFolder.setSelection(1);
-			tabFolder.addSelectionListener(new SelectionAdapter() {
+    public void openMethodDetail(DexMethod target) {
+        classDetail.showMethod(target);
+        tabFolder.setSelection(2);
+    }
 
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					if (tabFolder.getSelectionIndex() == 5) {
-						// currently augmsgViewer is in index 5
-						augmsgViewer.update();
-					}
-				}
-			});
-
-			// Initialize augmentations
-			InstructionSemanticizer.get(program);
-			DataFlowAnalyzer.get(program);
-		}
-
-		shell.addDisposeListener(new DisposeListener() {
-
-			@Override
-			public void widgetDisposed(DisposeEvent e) {
-				tabFolder.dispose();
-				shell.dispose();
-			}
-		});
-		shell.open();
-	}
-
-	private void addToTab(String title, Control content) {
-		TabItem tabItem = new TabItem(tabFolder, SWT.NONE);
-		tabItem.setText(title);
-		tabItem.setControl(content);
-	}
-
-	public Shell getShell() {
-		return shell;
-	}
-
-	public void openClassDetail(DexClass target) {
-		classDetail.showClass(target);
-		tabFolder.setSelection(2);
-	}
-
-	public void openMethodDetail(DexMethod target) {
-		classDetail.showMethod(target);
-		tabFolder.setSelection(2);
-	}
-
-	public void openFieldDetail(DexField target) {
-		classDetail.showField(target);
-		tabFolder.setSelection(2);
-	}
+    public void openFieldDetail(DexField target) {
+        classDetail.showField(target);
+        tabFolder.setSelection(2);
+    }
 }
