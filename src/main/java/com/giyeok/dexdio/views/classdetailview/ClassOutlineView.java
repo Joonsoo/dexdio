@@ -5,15 +5,14 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Composite;
 
 import com.giyeok.dexdio.dexreader.value.Value;
-import com.giyeok.dexdio.model.DexClass;
-import com.giyeok.dexdio.model.DexField;
-import com.giyeok.dexdio.model.DexMethod;
-import com.giyeok.dexdio.model.DexParameter;
+import com.giyeok.dexdio.model0.DexClass;
+import com.giyeok.dexdio.model0.DexField;
+import com.giyeok.dexdio.model0.DexMethod;
+import com.giyeok.dexdio.model0.DexParameter;
 import com.giyeok.dexdio.widgets.Label;
 import com.giyeok.dexdio.widgets.LabelHoverListener;
 import com.giyeok.dexdio.widgets.LabelListWidget;
 import com.giyeok.dexdio.widgets.ListWidget;
-import com.giyeok.dexdio.widgets.ListWidgetClickedListener;
 import com.giyeok.dexdio.widgets.ListWidgetSelectionListener;
 import com.giyeok.dexdio.widgets.OneSelectionListEventListener;
 

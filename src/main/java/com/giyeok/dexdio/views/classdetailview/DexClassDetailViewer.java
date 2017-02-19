@@ -14,12 +14,12 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Layout;
 
 import com.giyeok.dexdio.MainView;
-import com.giyeok.dexdio.model.DexClass;
-import com.giyeok.dexdio.model.DexField;
-import com.giyeok.dexdio.model.DexMethod;
-import com.giyeok.dexdio.model.DexProgram;
-import com.giyeok.dexdio.model.DexType;
-import com.giyeok.dexdio.model.insns.DexInstruction;
+import com.giyeok.dexdio.model0.DexClass;
+import com.giyeok.dexdio.model0.DexField;
+import com.giyeok.dexdio.model0.DexMethod;
+import com.giyeok.dexdio.model0.DexProgram;
+import com.giyeok.dexdio.model0.DexType;
+import com.giyeok.dexdio.model0.insns.DexInstruction;
 import com.giyeok.dexdio.views.classdetailview.ClassContentView.MethodContentViewStyle;
 
 public class DexClassDetailViewer {

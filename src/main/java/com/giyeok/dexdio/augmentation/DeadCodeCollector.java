@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.giyeok.dexdio.augmentation.instsem.InstSemStatement;
-import com.giyeok.dexdio.model.DexProgram;
+import com.giyeok.dexdio.model0.DexProgram;
 
 public class DeadCodeCollector extends Augmentation {
 

@@ -1,9 +1,9 @@
 package com.giyeok.dexdio.augmentation.instsem;
 
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemantic.InstSemOperand;
-import com.giyeok.dexdio.model.DexCodeItem;
-import com.giyeok.dexdio.model.DexMethod;
-import com.giyeok.dexdio.model.DexType;
+import com.giyeok.dexdio.model0.DexCodeItem;
+import com.giyeok.dexdio.model0.DexMethod;
+import com.giyeok.dexdio.model0.DexType;
 import com.giyeok.dexdio.util.ArraysUtil;
 
 public class InstSemInstanceMethodInvoke extends InstSemStatement implements InstSemOperand {

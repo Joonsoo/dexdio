@@ -1,7 +1,7 @@
 package com.giyeok.dexdio.augmentation.expression;
 
 import com.giyeok.dexdio.augmentation.Augmentation;
-import com.giyeok.dexdio.model.DexProgram;
+import com.giyeok.dexdio.model0.DexProgram;
 
 public class Expressionizer extends Augmentation {
 

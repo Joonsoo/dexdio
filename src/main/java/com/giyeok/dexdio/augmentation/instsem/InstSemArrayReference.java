@@ -2,8 +2,8 @@ package com.giyeok.dexdio.augmentation.instsem;
 
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemantic.InstSemLHS;
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemantic.InstSemOperand;
-import com.giyeok.dexdio.model.DexCodeItem;
-import com.giyeok.dexdio.model.DexType;
+import com.giyeok.dexdio.model0.DexCodeItem;
+import com.giyeok.dexdio.model0.DexType;
 
 public class InstSemArrayReference implements InstSemOperand, InstSemLHS {
 	

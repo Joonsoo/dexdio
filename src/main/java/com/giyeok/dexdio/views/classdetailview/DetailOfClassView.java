@@ -7,7 +7,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import com.giyeok.dexdio.augmentation.ReferenceCollector;
-import com.giyeok.dexdio.model.DexClass;
+import com.giyeok.dexdio.model0.DexClass;
 
 class DetailOfClassView {
 	private DexClassDetailViewer controller;

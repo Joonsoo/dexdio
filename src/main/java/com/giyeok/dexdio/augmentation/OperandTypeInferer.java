@@ -19,13 +19,13 @@ import com.giyeok.dexdio.augmentation.instsem.InstructionSemantic.InstSemOperand
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemantic.InstSemType;
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemanticizer;
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemanticizer.MethodSemantics;
-import com.giyeok.dexdio.model.DexArrayType;
-import com.giyeok.dexdio.model.DexClass;
-import com.giyeok.dexdio.model.DexCodeItem;
-import com.giyeok.dexdio.model.DexInternalClass;
-import com.giyeok.dexdio.model.DexMethod;
-import com.giyeok.dexdio.model.DexProgram;
-import com.giyeok.dexdio.model.DexType;
+import com.giyeok.dexdio.model0.DexArrayType;
+import com.giyeok.dexdio.model0.DexClass;
+import com.giyeok.dexdio.model0.DexCodeItem;
+import com.giyeok.dexdio.model0.DexInternalClass;
+import com.giyeok.dexdio.model0.DexMethod;
+import com.giyeok.dexdio.model0.DexProgram;
+import com.giyeok.dexdio.model0.DexType;
 
 /**
  * data flow analysis 결과를 이용하여 각 오퍼랜드의 타입을 유추한다

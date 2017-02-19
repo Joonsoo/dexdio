@@ -1,7 +1,7 @@
 package com.giyeok.dexdio.augmentation.instsem;
 
-import com.giyeok.dexdio.model.DexCodeItem;
-import com.giyeok.dexdio.model.DexCodeItem.DexRegister;
+import com.giyeok.dexdio.model0.DexCodeItem;
+import com.giyeok.dexdio.model0.DexCodeItem.DexRegister;
 
 public class InstSemRegisterPair extends InstSemRegister {
 

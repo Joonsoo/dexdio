@@ -7,7 +7,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.giyeok.dexdio.MainView;
 import com.giyeok.dexdio.augmentation.Logger;
-import com.giyeok.dexdio.model.DexProgram;
+import com.giyeok.dexdio.model0.DexProgram;
 import com.giyeok.dexdio.widgets.GroupedLabelListWidget;
 import com.giyeok.dexdio.widgets.Label;
 

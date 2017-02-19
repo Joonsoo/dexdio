@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 import org.eclipse.draw2d.ColorConstants;
 
-import com.giyeok.dexdio.model.DexClass;
-import com.giyeok.dexdio.model.DexCodeItem;
-import com.giyeok.dexdio.model.DexMethod;
+import com.giyeok.dexdio.model0.DexClass;
+import com.giyeok.dexdio.model0.DexCodeItem;
+import com.giyeok.dexdio.model0.DexMethod;
 import com.giyeok.dexdio.views.classdetailview.ClassContentView.MethodContentViewStyle;
 import com.giyeok.dexdio.views.classdetailview.listings.InstSemListing;
 import com.giyeok.dexdio.views.classdetailview.listings.MethodContentListing;

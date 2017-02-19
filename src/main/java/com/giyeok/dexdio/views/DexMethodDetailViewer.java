@@ -6,10 +6,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import com.giyeok.dexdio.MainView;
-import com.giyeok.dexdio.model.DexCodeItem;
-import com.giyeok.dexdio.model.DexMethod;
-import com.giyeok.dexdio.model.DexProgram;
-import com.giyeok.dexdio.model.insns.DexInstruction;
+import com.giyeok.dexdio.model0.DexCodeItem;
+import com.giyeok.dexdio.model0.DexMethod;
+import com.giyeok.dexdio.model0.DexProgram;
+import com.giyeok.dexdio.model0.insns.DexInstruction;
 import com.giyeok.dexdio.widgets.ListWidget;
 import com.giyeok.dexdio.widgets.OneSelectionListEventListener;
 import com.giyeok.dexdio.widgets.TextColumnListWidget;

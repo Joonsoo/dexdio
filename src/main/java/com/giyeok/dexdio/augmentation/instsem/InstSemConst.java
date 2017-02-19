@@ -2,12 +2,12 @@ package com.giyeok.dexdio.augmentation.instsem;
 
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemantic.InstSemElement;
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemantic.InstSemOperand;
-import com.giyeok.dexdio.model.DexCodeItem;
-import com.giyeok.dexdio.model.DexField;
-import com.giyeok.dexdio.model.DexType;
-import com.giyeok.dexdio.model.insns.OperandBranchTarget;
-import com.giyeok.dexdio.model.insns.OperandConstantPool;
-import com.giyeok.dexdio.model.insns.OperandIntegerConstant;
+import com.giyeok.dexdio.model0.DexCodeItem;
+import com.giyeok.dexdio.model0.DexField;
+import com.giyeok.dexdio.model0.DexType;
+import com.giyeok.dexdio.model0.insns.OperandBranchTarget;
+import com.giyeok.dexdio.model0.insns.OperandConstantPool;
+import com.giyeok.dexdio.model0.insns.OperandIntegerConstant;
 
 public class InstSemConst implements InstSemOperand, InstSemElement {
 	

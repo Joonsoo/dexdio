@@ -10,9 +10,9 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import com.giyeok.dexdio.augmentation.ReferenceCollector;
-import com.giyeok.dexdio.model.DexField;
-import com.giyeok.dexdio.model.DexMethod;
-import com.giyeok.dexdio.model.insns.DexInstruction;
+import com.giyeok.dexdio.model0.DexField;
+import com.giyeok.dexdio.model0.DexMethod;
+import com.giyeok.dexdio.model0.insns.DexInstruction;
 import com.giyeok.dexdio.widgets.ListWidget;
 import com.giyeok.dexdio.widgets.ListWidgetClickedListener;
 import com.giyeok.dexdio.widgets.TextColumnListWidget;

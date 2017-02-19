@@ -1,10 +1,10 @@
 package com.giyeok.dexdio.augmentation.instsem;
 
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemantic.InstSemOperand;
-import com.giyeok.dexdio.model.DexCodeItem.DexRegister;
-import com.giyeok.dexdio.model.DexCodeItem;
-import com.giyeok.dexdio.model.DexParameter;
-import com.giyeok.dexdio.model.DexType;
+import com.giyeok.dexdio.model0.DexCodeItem.DexRegister;
+import com.giyeok.dexdio.model0.DexCodeItem;
+import com.giyeok.dexdio.model0.DexParameter;
+import com.giyeok.dexdio.model0.DexType;
 
 public class InstSemParameter implements InstSemOperand {
 	

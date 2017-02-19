@@ -1,6 +1,6 @@
 package com.giyeok.dexdio.augmentation.instsem;
 
-import com.giyeok.dexdio.model.insns.DexInstruction;
+import com.giyeok.dexdio.model0.insns.DexInstruction;
 
 public abstract class InstSemStatement implements InstructionSemantic {
 

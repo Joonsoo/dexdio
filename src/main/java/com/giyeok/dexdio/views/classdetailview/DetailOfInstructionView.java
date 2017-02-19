@@ -23,11 +23,11 @@ import com.giyeok.dexdio.augmentation.ControlFlowAnalyzer;
 import com.giyeok.dexdio.augmentation.ControlFlowAnalyzer.ControlFlowAnalysis;
 import com.giyeok.dexdio.augmentation.ControlFlowAnalyzer.ControlFlowAnalysis.BasicBlock;
 import com.giyeok.dexdio.augmentation.ControlFlowAnalyzer.ControlFlowAnalysis.Edge;
-import com.giyeok.dexdio.model.DexCodeItem;
-import com.giyeok.dexdio.model.DexType;
-import com.giyeok.dexdio.model.insns.DexInstFillArrayData;
-import com.giyeok.dexdio.model.insns.DexInstSwitch;
-import com.giyeok.dexdio.model.insns.DexInstruction;
+import com.giyeok.dexdio.model0.DexCodeItem;
+import com.giyeok.dexdio.model0.DexType;
+import com.giyeok.dexdio.model0.insns.DexInstFillArrayData;
+import com.giyeok.dexdio.model0.insns.DexInstSwitch;
+import com.giyeok.dexdio.model0.insns.DexInstruction;
 import com.giyeok.dexdio.util.Pair;
 import com.giyeok.dexdio.widgets.TextColumnListWidget;
 

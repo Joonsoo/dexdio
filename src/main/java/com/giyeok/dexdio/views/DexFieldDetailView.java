@@ -5,8 +5,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import com.giyeok.dexdio.MainView;
-import com.giyeok.dexdio.model.DexField;
-import com.giyeok.dexdio.model.DexProgram;
+import com.giyeok.dexdio.model0.DexField;
+import com.giyeok.dexdio.model0.DexProgram;
 
 public class DexFieldDetailView {
 	private MainView mainView;

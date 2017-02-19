@@ -5,10 +5,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.giyeok.dexdio.model.DexCodeItem;
-import com.giyeok.dexdio.model.DexMethod;
-import com.giyeok.dexdio.model.DexProgram;
-import com.giyeok.dexdio.model.insns.DexInstruction;
+import com.giyeok.dexdio.model0.DexCodeItem;
+import com.giyeok.dexdio.model0.DexMethod;
+import com.giyeok.dexdio.model0.DexProgram;
+import com.giyeok.dexdio.model0.insns.DexInstruction;
 
 
 public abstract class Augmentation {

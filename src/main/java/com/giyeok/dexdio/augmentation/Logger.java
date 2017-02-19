@@ -6,11 +6,11 @@ import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.swt.events.MouseEvent;
 
 import com.giyeok.dexdio.MainView;
-import com.giyeok.dexdio.model.DexClass;
-import com.giyeok.dexdio.model.DexField;
-import com.giyeok.dexdio.model.DexMethod;
-import com.giyeok.dexdio.model.DexProgram;
-import com.giyeok.dexdio.model.DexType;
+import com.giyeok.dexdio.model0.DexClass;
+import com.giyeok.dexdio.model0.DexField;
+import com.giyeok.dexdio.model0.DexMethod;
+import com.giyeok.dexdio.model0.DexProgram;
+import com.giyeok.dexdio.model0.DexType;
 import com.giyeok.dexdio.widgets.Label;
 import com.giyeok.dexdio.widgets.LabelClickListener;
 import com.giyeok.dexdio.widgets.LabelListWidget;

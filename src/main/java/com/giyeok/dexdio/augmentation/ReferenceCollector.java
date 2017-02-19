@@ -4,20 +4,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.giyeok.dexdio.model.DexField;
-import com.giyeok.dexdio.model.DexMethod;
-import com.giyeok.dexdio.model.DexProgram;
-import com.giyeok.dexdio.model.DexType;
-import com.giyeok.dexdio.model.insns.DexInstCheckCast;
-import com.giyeok.dexdio.model.insns.DexInstFilledNewArray;
-import com.giyeok.dexdio.model.insns.DexInstInstanceOf;
-import com.giyeok.dexdio.model.insns.DexInstInstanceOp;
-import com.giyeok.dexdio.model.insns.DexInstInvoke;
-import com.giyeok.dexdio.model.insns.DexInstMoveConst;
-import com.giyeok.dexdio.model.insns.DexInstNewArray;
-import com.giyeok.dexdio.model.insns.DexInstNewInstance;
-import com.giyeok.dexdio.model.insns.DexInstStaticOp;
-import com.giyeok.dexdio.model.insns.DexInstruction;
+import com.giyeok.dexdio.model0.DexField;
+import com.giyeok.dexdio.model0.DexMethod;
+import com.giyeok.dexdio.model0.DexProgram;
+import com.giyeok.dexdio.model0.DexType;
+import com.giyeok.dexdio.model0.insns.DexInstCheckCast;
+import com.giyeok.dexdio.model0.insns.DexInstFilledNewArray;
+import com.giyeok.dexdio.model0.insns.DexInstInstanceOf;
+import com.giyeok.dexdio.model0.insns.DexInstInstanceOp;
+import com.giyeok.dexdio.model0.insns.DexInstInvoke;
+import com.giyeok.dexdio.model0.insns.DexInstMoveConst;
+import com.giyeok.dexdio.model0.insns.DexInstNewArray;
+import com.giyeok.dexdio.model0.insns.DexInstNewInstance;
+import com.giyeok.dexdio.model0.insns.DexInstStaticOp;
+import com.giyeok.dexdio.model0.insns.DexInstruction;
 
 /**
  * 각 메소드를 호출하는 인스트럭션, 필드를 참조하는 인스트럭션, 타입을 참조하는 인스트럭션을 찾는다 

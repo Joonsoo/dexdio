@@ -26,7 +26,7 @@ import com.giyeok.dexdio.dexreader.structs.class_data_item;
 import com.giyeok.dexdio.dexreader.structs.encoded_field;
 import com.giyeok.dexdio.dexreader.structs.encoded_method;
 import com.giyeok.dexdio.dexreader.structs.header_item;
-import com.giyeok.dexdio.model.DexAccessFlags;
+import com.giyeok.dexdio.model0.DexAccessFlags;
 import com.giyeok.dexdio.widgets.ListTitleItem;
 import com.giyeok.dexdio.widgets.ListWidget;
 import com.giyeok.dexdio.widgets.ListWidgetSelectionListener;

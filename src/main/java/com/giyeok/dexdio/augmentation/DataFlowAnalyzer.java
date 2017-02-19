@@ -31,13 +31,13 @@ import com.giyeok.dexdio.augmentation.instsem.InstructionSemantic.InstSemLHS;
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemantic.InstSemOperand;
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemanticizer;
 import com.giyeok.dexdio.augmentation.instsem.InstructionSemanticizer.MethodSemantics;
-import com.giyeok.dexdio.model.DexCodeItem;
-import com.giyeok.dexdio.model.DexCodeItem.DexRegister;
-import com.giyeok.dexdio.model.DexMethod;
-import com.giyeok.dexdio.model.DexProgram;
-import com.giyeok.dexdio.model.insns.DexInstMoveResult;
-import com.giyeok.dexdio.model.insns.DexInstNop;
-import com.giyeok.dexdio.model.insns.DexInstruction;
+import com.giyeok.dexdio.model0.DexCodeItem;
+import com.giyeok.dexdio.model0.DexCodeItem.DexRegister;
+import com.giyeok.dexdio.model0.DexMethod;
+import com.giyeok.dexdio.model0.DexProgram;
+import com.giyeok.dexdio.model0.insns.DexInstMoveResult;
+import com.giyeok.dexdio.model0.insns.DexInstNop;
+import com.giyeok.dexdio.model0.insns.DexInstruction;
 import com.giyeok.dexdio.util.ArraysUtil;
 
 /**
