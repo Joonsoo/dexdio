@@ -1,5 +1,6 @@
 package com.giyeok.dexdio.widgets2
 
+import com.giyeok.dexdio.widgets2.FlatFigureStream._
 import org.eclipse.jface.resource.JFaceResources
 import org.eclipse.swt.SWT
 import org.eclipse.swt.layout.FillLayout
@@ -7,79 +8,100 @@ import org.eclipse.swt.widgets.Display
 import org.eclipse.swt.widgets.Shell
 
 object FigureTreeViewTest {
-    val methodAbc = Container(
-        Seq(Container(
-            Seq(
-                TextLabel("int", TextNoDecoration, Set("type:int")),
-                SpacingLabel(0, 1),
-                TextLabel("abc", TextNoDecoration, Set("methodName", "method:com/abc/aaa:abc")),
-                TextLabel("(", TextNoDecoration, Set("punctuation")),
-                Container(Seq(
-                    Container(Seq(
-                        TextLabel("int", TextNoDecoration, Set("type", "type:I")),
-                        SpacingLabel(0, 1),
-                        TextLabel("a", TextNoDecoration, Set("parameterName", "parameter:com/abc/aaa/:abc:0"))
-                    ), Set("parameter", "parameter:com/abc/aaa/:abc:0")),
-                    Container(Seq(
-                        TextLabel("String", TextNoDecoration, Set("type", "type:java/lang/String")),
-                        SpacingLabel(0, 1),
-                        TextLabel("b", TextNoDecoration, Set("parameterName", "parameter:com/abc/aaa/:abc:1"))
-                    ), Set("parameter", "parameter:com/abc/aaa/:abc:1"))
-                ), Set("parameterList", "method:com/abc/aaa:abc")),
-                TextLabel(")", TextNoDecoration, Set("punctuation")),
 
-                Container(
-                    Seq(
-                        TextLabel("{", TextNoDecoration, Set("punctuation")),
-                        NewLine(),
-                        Deferred(Indented(
+    case class Line(lineNum: Int) extends Tag
+    case object Parameter extends Tag
+    case object ParameterType extends Tag
+    case object ParameterName extends Tag
+    case object ParameterList extends Tag
+    case class TypeTag(typeDescriptor: String) extends Tag
+    case class MethodTag(methodName: String) extends Tag
+    case object Punctuation extends Tag
+    case class ParameterTag(methodName: String, index: Int) extends Tag
+    sealed trait BracketTag extends Tag {
+        def opposite: BracketTag
+    }
+    case class OpeningBracket(id: Int) extends BracketTag {
+        def opposite = ClosingBracket(id)
+    }
+    case class ClosingBracket(id: Int) extends BracketTag {
+        def opposite = OpeningBracket(id)
+    }
+    case object JavaStatement extends Tag
+    case object MethodBody extends Tag
+    case object MethodBodyContent extends Tag
+    case object MethodDefinition extends Tag
+    case object MethodSignature extends Tag
+
+    val methodAbc = Container(
+        Seq(
+            Container(
+                Seq(
+                    Container(
+                        Seq(
+                            TextLabel("int", TextNoDecoration, Set(TypeTag("type:I"))),
+                            SpacingLabel(0, 1),
+                            TextLabel("abc", TextNoDecoration, Set(MethodTag("method:com/abc/aaa:abc"))),
+                            TextLabel("(", TextNoDecoration, Set(Punctuation, OpeningBracket(1))),
                             Container(Seq(
-                                Container(
-                                    Seq(
-                                        TextLabel("statement", TextNoDecoration, Set("blahblah")),
-                                        NewLine()
-                                    ),
-                                    Set("methodBodyLine")
-                                ),
-                                Container(
-                                    Seq(
-                                        TextLabel("statement2", TextNoDecoration, Set("blahblah")),
-                                        NewLine()
-                                    ),
-                                    Set("methodBodyLine")
-                                )
-                            ), Set("methodBodyContent"))
-                        )),
-                        TextLabel("}", TextNoDecoration, Set("punctuation")),
-                        NewLine()
+                                Container(Seq(
+                                    TextLabel("int", TextNoDecoration, Set(ParameterType, ParameterTag("com/abc/aaa:abc", 0), TypeTag("I"))),
+                                    SpacingLabel(0, 1),
+                                    TextLabel("a", TextNoDecoration, Set(ParameterName, ParameterTag("com/abc/aaa:abc", 0)))
+                                ), Set(Parameter, ParameterTag("com/abc/aaa:abc", 0))),
+                                TextLabel(", ", TextNoDecoration, Set(Punctuation)),
+                                Container(Seq(
+                                    TextLabel("String", TextNoDecoration, Set(ParameterType, ParameterTag("com/abc/aaa:abc", 1), TypeTag("Ljava/lang/String"))),
+                                    SpacingLabel(0, 1),
+                                    TextLabel("b", TextNoDecoration, Set(ParameterName, ParameterTag("com/abc/aaa/:abc", 1)))
+                                ), Set(Parameter, ParameterTag("com/abc/aaa:abc", 1)))
+                            ), Set(ParameterList, ParameterTag("com/abc/aaa:abc", 1))),
+                            TextLabel(")", TextNoDecoration, Set(Punctuation, ClosingBracket(1))),
+                            SpacingLabel(0, 1)
+                        ),
+                        Set(MethodDefinition, MethodTag("com/abc/aaa:abc"))
                     ),
-                    Set("methodBody", "method:com/abc/aaa:abc")
-                )
-            ),
-            Set("methodSignature", "method:com/abc/aaa:abc")
-        )),
+
+                    Container(
+                        Seq(
+                            TextLabel("{", TextNoDecoration, Set(Punctuation, OpeningBracket(2))),
+                            NewLine(),
+                            Deferred(Indented(
+                                Container(Seq(
+                                    Container(
+                                        Seq(
+                                            TextLabel("statement", TextNoDecoration, Set(JavaStatement)),
+                                            NewLine()
+                                        ),
+                                        Set(JavaStatement)
+                                    ),
+                                    Container(
+                                        Seq(
+                                            TextLabel("statement2", TextNoDecoration, Set(JavaStatement)),
+                                            NewLine()
+                                        ),
+                                        Set(JavaStatement)
+                                    )
+                                ), Set(MethodBodyContent, MethodTag("com/abc/aaa:abc")))
+                            )),
+                            TextLabel("}", TextNoDecoration, Set(Punctuation, ClosingBracket(2))),
+                            NewLine()
+                        ),
+                        Set(MethodBody, MethodTag("com/abc/aaa:abc"))
+                    )
+                ),
+                Set(MethodDefinition, MethodTag("com/abc/aaa:abc"))
+            )
+        ),
         Set()
     )
 
-    // import com.giyeok.dexdio.widgets2._
-    def nextLine(stream: Stream[FlatFigure]): (Stream[FlatFigure], Stream[FlatFigure]) = {
-        val (line, rest) = stream span {
-            case FigureLabel(_: NewLine) => false
-            case _ => true
-        }
-        if (rest.nonEmpty) {
-            (line :+ rest.head, rest.tail)
-        } else (line, rest)
-    }
-    def print(stream: Iterable[FlatFigure]): Unit = {
-        stream foreach {
-            case FigurePush(_) => println("FigurePush")
-            case FigurePop(_) => println("FigurePush")
-            case FigureLabel(label) => println(label)
-        }
-    }
-    val (thisLine, rest) = nextLine(FigureTreeViewTest.methodAbc.flatten)
-    print(thisLine)
+    /*
+    import com.giyeok.dexdio.widgets2._
+    import com.giyeok.dexdio.widgets2.FlatFigureStream._
+    */
+    val stream = FigureTreeViewTest.methodAbc.flatFigureStream
+    val linesStream = stream.lines
 
     def main(args: Array[String]): Unit = {
         val display = new Display()
@@ -88,7 +110,8 @@ object FigureTreeViewTest {
         shell.setLayout(new FillLayout())
         shell.setBounds(100, 100, 800, 600)
 
-        new FigureTreeView(shell, SWT.NONE, TextLabel("hello", TextNoDecoration, Set()), Seq(), DrawingConfig(15, JFaceResources.getFont(JFaceResources.TEXT_FONT)))
+        // new FigureTreeView(shell, SWT.NONE, TextLabel("hello", TextNoDecoration, Set()), Seq(), DrawingConfig(15, JFaceResources.getFont(JFaceResources.TEXT_FONT)))
+        new FigureTreeView(shell, SWT.NONE, methodAbc, Seq(), DrawingConfig(15, JFaceResources.getFont(JFaceResources.TEXT_FONT)))
 
         shell.open()
 

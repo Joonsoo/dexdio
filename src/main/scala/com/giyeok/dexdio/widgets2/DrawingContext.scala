@@ -8,17 +8,29 @@ case class DrawingConfig(
     defaultFont: Font
 )
 
+object DrawingContext {
+    private var charSizeMapCache = Option.empty[Map[Char, Dimension]]
+    private def charSizeMap(gc: GC, conf: DrawingConfig): Map[Char, Dimension] = {
+        charSizeMapCache match {
+            case Some(map) => map
+            case None =>
+                val chars = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.~`!\\|!@#$%^&*()_+-=,./<>?"
+                gc.setFont(conf.defaultFont)
+                val map = (chars map { c =>
+                    val d = gc.textExtent("" + c)
+                    c -> Dimension(d.x, d.y)
+                }).toMap
+                charSizeMapCache = Some(map)
+                map
+        }
+    }
+}
+
 case class DrawingContext(gc: GC, conf: DrawingConfig) {
     val indentWidth: Int = conf.indentWidth
 
-    lazy val charSizeMap: Map[Char, Dimension] = {
-        val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.~`!\\|!@#$%^&*()_+-=,./<>?"
-        gc.setFont(conf.defaultFont)
-        (chars map { c =>
-            val d = gc.textExtent("" + c)
-            c -> Dimension(d.x, d.y)
-        }).toMap
-    }
+    lazy val charSizeMap: Map[Char, Dimension] =
+        DrawingContext.charSizeMap(gc, conf)
     lazy val standardLineHeight: Int = (charSizeMap map { _._2.height }).max.toInt
 
     def textExtent(text: String, deco: TextDecoration): Dimension = {
