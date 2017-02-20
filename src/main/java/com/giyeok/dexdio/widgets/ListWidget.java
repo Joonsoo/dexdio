@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -27,13 +28,11 @@ import org.eclipse.swt.widgets.Composite;
 abstract public class ListWidget extends Canvas 
 		implements MouseListener, MouseMoveListener, MouseWheelListener, DisposeListener, PaintListener {
 
-	private static String DefaultFontFace = "Consolas";
-	private static int DefaultFontSize = 10;
 	private static int TextVerticalAlignment = 0;
 	
 	private Color itemBackgroundColors[];
 	private Color fontcolor;
-	private Font font;
+	private Font font = 	JFaceResources.getFont(JFaceResources.TEXT_FONT);
 	
 	private ListTitleItem[] listtitle;
 	protected int titleheight;
@@ -67,7 +66,7 @@ abstract public class ListWidget extends Canvas
 		scrollbarback = new Color(null, 255, 255, 255);
 		scrollbarhint = new Color(null, 180, 180, 180);
 		
-		this.font = new Font(null, ListWidget.DefaultFontFace, ListWidget.DefaultFontSize, SWT.NONE);
+		// this.font = new Font(null, ListWidget.DefaultFontFace, ListWidget.DefaultFontSize, SWT.NONE);
 		setFont(font);
 		
 		itemheight = -1;		// marks to recalculate the font size

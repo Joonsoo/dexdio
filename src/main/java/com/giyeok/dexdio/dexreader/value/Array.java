@@ -3,7 +3,6 @@ package com.giyeok.dexdio.dexreader.value;
 import java.io.IOException;
 import java.util.Arrays;
 
-import com.giyeok.dexdio.dexreader.EndianRandomAccessFile;
 import com.giyeok.dexdio.dexreader.RandomAccessible;
 
 public class Array extends Value {
