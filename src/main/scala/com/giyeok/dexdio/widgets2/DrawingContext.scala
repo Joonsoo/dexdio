@@ -4,11 +4,12 @@ import org.eclipse.swt.graphics.Font
 import org.eclipse.swt.graphics.GC
 
 case class DrawingConfig(
-    indentWidth: Int,
+    indentWidth: SpacingLabel,
     defaultFont: Font
 )
 
 object DrawingContext {
+    private var indentWidth = Option.empty[Int]
     private var charSizeMapCache = Option.empty[Map[Char, Dimension]]
     private def charSizeMap(gc: GC, conf: DrawingConfig): Map[Char, Dimension] = {
         charSizeMapCache match {
@@ -27,7 +28,7 @@ object DrawingContext {
 }
 
 case class DrawingContext(gc: GC, conf: DrawingConfig) {
-    val indentWidth: Int = conf.indentWidth
+    lazy val indentWidth: Int = DrawingContext.indentWidth.getOrElse(conf.indentWidth.widthInPixel(this))
 
     lazy val charSizeMap: Map[Char, Dimension] =
         DrawingContext.charSizeMap(gc, conf)

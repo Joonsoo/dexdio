@@ -36,10 +36,12 @@ case class ImageLabel(image: Image, tags: Set[Tag]) extends Label {
 case class SpacingLabel(pixelWidth: Int, spaceCount: Int) extends Label {
     val tags = Set()
 
-    def measureDimension(dc: DrawingContext): FigureDimension = {
+    def widthInPixel(dc: DrawingContext): Int = {
         val spaceDim = dc.charSizeMap(' ')
-        FigureDimension(Dimension(pixelWidth + spaceDim.width * spaceCount, dc.standardLineHeight), None)
+        pixelWidth + spaceDim.width.toInt * spaceCount
     }
+    def measureDimension(dc: DrawingContext): FigureDimension =
+        FigureDimension(Dimension(widthInPixel(dc), dc.standardLineHeight), None)
 }
 // TODO ColumnRight 추가
 case class ColumnSep() extends Label with FigureNoTags {

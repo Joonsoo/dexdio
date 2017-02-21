@@ -3,6 +3,7 @@ package com.giyeok.dexdio.widgets2
 import com.giyeok.dexdio.widgets2.FlatFigureStream._
 import org.eclipse.jface.resource.JFaceResources
 import org.eclipse.swt.SWT
+import org.eclipse.swt.graphics.Font
 import org.eclipse.swt.layout.FillLayout
 import org.eclipse.swt.widgets.Display
 import org.eclipse.swt.widgets.Shell
@@ -89,6 +90,19 @@ object FigureTreeViewTest {
                                             TextLabel(";", TextNoDecoration, Set(Punctuation))
                                         ),
                                         Set(JavaStatement)
+                                    ),
+                                    NewLine(),
+                                    Container(
+                                        Seq(
+                                            TextLabel("very_very_long_long_long_long_long_statement_it_is", TextNoDecoration, Set(JavaStatement)),
+                                            TextLabel(";", TextNoDecoration, Set(Punctuation))
+                                        ),
+                                        Set(JavaStatement)
+                                    ),
+                                    NewLine(),
+                                    Container(
+                                        ("very_very_long_long_long_long_long_statement_it_is".toCharArray map { c => TextLabel(c.toString, TextNoDecoration, Set(JavaStatement)) }).toSeq :+ TextLabel(";", TextNoDecoration, Set(Punctuation)),
+                                        Set(JavaStatement)
                                     )
                                 ), Set(MethodBodyContent, MethodTag("com/abc/aaa:abc")))
                             )),
@@ -120,7 +134,9 @@ object FigureTreeViewTest {
         println(methodAbc.flatFigureStream.textRender)
 
         // new FigureTreeView(shell, SWT.NONE, TextLabel("hello", TextNoDecoration, Set()), Seq(), DrawingConfig(15, JFaceResources.getFont(JFaceResources.TEXT_FONT)))
-        new FigureTreeView(shell, SWT.NONE, methodAbc, Seq(), DrawingConfig(15, JFaceResources.getFont(JFaceResources.TEXT_FONT)))
+        val systemFont = JFaceResources.getFont(JFaceResources.TEXT_FONT)
+        val myFont = new Font(null, "Gothic", 30, SWT.ITALIC | SWT.BOLD)
+        new FigureTreeView(shell, SWT.NONE, methodAbc, Seq(), DrawingConfig(SpacingLabel(0, 2), myFont))
 
         shell.open()
 

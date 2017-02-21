@@ -66,7 +66,7 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
                     case TextLabel(text, deco, _) =>
                         val leftTop = label.figureExtra.estimatedCoord.position + Point(0, lineHeight - labelHeight) - scroll
                         deco.applyTo(dc.gc)
-                        dc.gc.drawText(text, leftTop.x.toInt, leftTop.y.toInt)
+                        dc.gc.drawText(text, leftTop.x.toInt, leftTop.y.toInt, true)
                     case ImageLabel(image, _) =>
                         ???
                     case SpacingLabel(_, _) => // nothing to do
