@@ -1,8 +1,13 @@
 package com.giyeok.dexdio.widgets2
 
+object Point {
+    val zero = Point(0, 0)
+}
 case class Point(x: Long, y: Long) {
     def +(diff: Point): Point =
         Point(x + diff.x, y + diff.y)
+    def -(other: Point): Point =
+        Point(x - other.x, y - other.y)
 }
 
 object Dimension {

@@ -1,12 +1,12 @@
 package com.giyeok.dexdio.widgets2
 
 import scala.collection.immutable.NumericRange
-import scala.collection.immutable.NumericRange.Inclusive
-import scala.collection.immutable.Range.Inclusive
 import com.giyeok.dexdio.widgets2.FlatFigureStream._
 import org.eclipse.swt.SWT
 import org.eclipse.swt.events.DisposeEvent
 import org.eclipse.swt.events.DisposeListener
+import org.eclipse.swt.events.KeyEvent
+import org.eclipse.swt.events.KeyListener
 import org.eclipse.swt.events.PaintEvent
 import org.eclipse.swt.events.PaintListener
 import org.eclipse.swt.widgets.Canvas
@@ -51,44 +51,83 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
         !((a.end <= b.start) || (a.end <= b.start))
     }
 
+    private def testRender(dc: DrawingContext, scroll: Point, screenBound: Rectangle): Unit = {
+        root.flatFigureStream.lines foreach { line =>
+            val deferreds = line.seq collect { case FigurePush(deferred: Deferred) => deferred }
+            deferreds foreach { d =>
+                d.figureExtra.estimateLayout(dc, d.figureExtra.estimatedCoord.anchor,
+                    RenderingPoint(d.figureExtra.estimatedCoord.position, 0), d.deferredExtra.indent)
+                println(d)
+            }
+            val lineHeight = line.estimatedLabelHeight
+            line.labels foreach { label =>
+                val labelHeight = label.figureExtra.estimatedDimension.leading.height
+                label match {
+                    case TextLabel(text, deco, _) =>
+                        val leftTop = label.figureExtra.estimatedCoord.position + Point(0, lineHeight - labelHeight) - scroll
+                        deco.applyTo(dc.gc)
+                        dc.gc.drawText(text, leftTop.x.toInt, leftTop.y.toInt)
+                    case ImageLabel(image, _) =>
+                        ???
+                    case SpacingLabel(_, _) => // nothing to do
+                    case ColumnSep() => // nothing to do
+                    case NewLine() => // nothing to do
+                }
+            }
+        }
+    }
+
     // layers 순서대로 + layers에서 처리되지 않은 나머지 figure들을 담은 RenderPlan이 반환된다
     private def planRender(dc: DrawingContext, scroll: Point, screenBound: Rectangle, layers: Seq[Layer]): Seq[RenderPlan] = {
         val visibleArea = screenBound + scroll
         val visibleY = visibleArea.top to visibleArea.bottom
-        def traverse(figure: Figure, top: Long, left: Long, indent: Int) = {
-            val position = figure.figureExtra.coord.position
-            /*
-            val occupyingY = position.y to (position.y + figure.figureExtra.estimatedHeight)
+        def traverse(figure: Figure, top: Long, lineBottom: Long, left: Long, indent: Int, interests: Map[Layer, Nothing]) = {
+            val position = figure.figureExtra.estimatedCoord.position
+            val occupyingY = position.y to (position.y + figure.figureExtra.estimatedDimension.totalHeight)
             if (rangeOverlap(visibleY, occupyingY)) {
-                // 이 figure가 화면에 보여질 y와 겹치는 영역에 있어서 화면에 표시될 가능성이 있음
                 figure match {
-                    case label: Label =>
-                        val visibleX = visibleArea.left to visibleArea.right
-                        if ((visibleX contains position.x) || (visibleX contains position.x + label.labelExtra.measuredWidth)) {
-                            // 이 label은 보이는 영역 안에 있어서 보임
-                            // TODO RenderPlan에 추가함
-                        }
-                    case Actionable(content) => // content 에 대해서 처리
                     case container: Container =>
-                        container.flatFigureStream
-                    case deferred: Deferred =>
-                        val content = deferred.content
-                        if (deferred.figureExtra.estimatedHeight != content.figureExtra.estimatedHeight) {
-                            // TODO deferred가 붙어있는 anchor에게 deferred의 사이즈가 바뀌었음을 알려줘서 relayout하고
-                            // deferred.figureExtra.estimatedHeight 를 업데이트한다
+                        container.flatFigureStream.lines takeWhile { line =>
+                            val lineHeight = line.labels.foldLeft(0L) { (m, i) =>
+                                Math.max(m, i.figureExtra.estimatedDimension.leading.height)
+                            }
+                            // line.seq에서 Container가 아닌 FigurePush, FigurePop 처리해서 interests 변경하고
+                            // Label들에 대해서 traverse
+                            // TODO line 그릴 때 lineHeight와 label의 estimatedHeight의 차이만큼 y에 더해서 아래정렬하기
+                            ???
                         }
-                    // content 에 대해서 처리
-                    case Indented(content) => // content에 대해서 처리
-                    case transformable: Transformable => // transformable.content 에 대해서 처리
                 }
+                // 이 figure가 화면에 보여질 y와 겹치는 영역에 있어서 화면에 표시될 가능성이 있음
+                /*
+                    figure match {
+                        case label: Label =>
+                            val visibleX = visibleArea.left to visibleArea.right
+                            if ((visibleX contains position.x) || (visibleX contains position.x + label.labelExtra.measuredWidth)) {
+                                // 이 label은 보이는 영역 안에 있어서 보임
+                                // TODO RenderPlan에 추가함
+                            }
+                        case Actionable(content) => // content 에 대해서 처리
+                        case container: Container =>
+                            container.flatFigureStream
+                        case deferred: Deferred =>
+                            val content = deferred.content
+                            if (deferred.figureExtra.estimatedHeight != content.figureExtra.estimatedHeight) {
+                                // TODO deferred가 붙어있는 anchor에게 deferred의 사이즈가 바뀌었음을 알려줘서 relayout하고
+                                // TODO deferred의 content가 Container이면 .containerExtra.prepareAnchors 및 .layoutItems를 호출한다
+                                // deferred.figureExtra.estimatedHeight 를 업데이트한다
+                            }
+                        // content 에 대해서 처리
+                        case Indented(content) => // content에 대해서 처리
+                        case transformable: Transformable => // transformable.content 에 대해서 처리
+                    }
+                */
             }
-            */
             figure.flatFigureStream.lines
             // scroll을 빼서 그게 bounds 안에 있으면 그리고 아니면 끝
             // TODO
             Seq()
         }
-        traverse(root, 0, 0, 0)
+        traverse(root, 0, 0, 0, 0, Map())
         ???
     }
 
@@ -106,10 +145,12 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
         println(s"paintControl ${System.currentTimeMillis()}")
         val dc = DrawingContext(e.gc, drawingConfig)
 
+        dc.gc.setFont(drawingConfig.defaultFont)
+
         if (firstRendering) {
-            root.figureExtra.coord = new AnchorCoord(new Anchor(Point(0, 0)), Point(0, 0))
-            root.containerExtra.prepareForTheFirstTime(dc)
-            // rootFigure.figureExtra.updateParents()
+            root.figureExtra.estimatedCoord = new AnchorCoord(AnchorRoot, Point(0, 0))
+            root.containerExtra.prepareAnchors(AnchorRoot, dc)
+            root.figureExtra.estimateLayout(dc, AnchorRoot, RenderingPoint(Point.zero, 0), 0)
             firstRendering = false
         } else {
             // TODO figure가 업데이트되면서 새로 생긴 부분이 있으면 figureExtra.coord가 반드시 셋팅되도록 해야 함
@@ -122,7 +163,7 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
         updated = List()
 
         val bounds = getBounds
-        val wholeHeight = root.figureExtra.estimatedDimension.get.totalHeight
+        val wholeHeight = root.figureExtra.estimatedDimension.totalHeight
         if (scrollLeft < 0) {
             scrollLeft = 0
         }
@@ -134,8 +175,12 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
             scrollTop = Math.max(0, wholeHeight - bounds.height)
         }
 
+        /*
         val plan = planRender(dc, Point(scrollLeft, scrollTop), Rectangle(bounds), Seq())
         plan foreach executeRenderPlan
+        */
+
+        testRender(dc, Point(scrollLeft, scrollTop), Rectangle(bounds))
 
         getCaret.setBounds(20, 20, 2, 15)
     }
@@ -147,4 +192,20 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
     setCaret(new Caret(this, SWT.NONE))
     addPaintListener(this)
     addDisposeListener(this)
+
+    addKeyListener(new KeyListener {
+        def keyPressed(e: KeyEvent) = {
+            println(e.keyCode, SWT.UP, SWT.DOWN, SWT.LEFT, SWT.RIGHT)
+            e.keyCode match {
+                case SWT.ARROW_UP => scrollTop -= 5
+                case SWT.ARROW_DOWN => scrollTop += 5
+                case SWT.ARROW_LEFT => scrollLeft -= 5
+                case SWT.ARROW_RIGHT => scrollLeft += 5
+                case _ => // nothing to do
+            }
+            redraw()
+        }
+
+        def keyReleased(e: KeyEvent) = {}
+    })
 }

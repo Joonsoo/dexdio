@@ -48,7 +48,15 @@ trait FlatFigureSeq {
     }
 }
 
-class FlatFigureLine(val seq: Seq[FlatFigure]) extends FlatFigureSeq
+class FlatFigureLine(val seq: Seq[FlatFigure]) extends FlatFigureSeq {
+    def labels: Seq[Label] = seq collect {
+        case FigureLabel(label) => label
+    }
+    def estimatedLabelHeight: Long = {
+        val labels = this.labels
+        if (labels.isEmpty) 0 else (labels map { _.figureExtra.estimatedDimension.totalHeight }).max
+    }
+}
 
 class FlatFigureStream(val seq: Stream[FlatFigure]) extends FlatFigureSeq {
     def isEmpty: Boolean = seq.isEmpty
