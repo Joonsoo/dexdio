@@ -5,6 +5,9 @@ case class Point(x: Long, y: Long) {
         Point(x + diff.x, y + diff.y)
 }
 
+object Dimension {
+    val zero = Dimension(0, 0)
+}
 case class Dimension(width: Long, height: Long) {
     def +(diff: Dimension): Dimension =
         Dimension(width + diff.width, height + diff.height)

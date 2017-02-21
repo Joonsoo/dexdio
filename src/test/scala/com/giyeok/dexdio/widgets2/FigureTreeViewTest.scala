@@ -65,27 +65,34 @@ object FigureTreeViewTest {
                     Container(
                         Seq(
                             TextLabel("{", TextNoDecoration, Set(Punctuation, OpeningBracket(2))),
-                            NewLine(),
-                            Deferred(Indented(
+                            Indented(Deferred(
                                 Container(Seq(
                                     Container(
                                         Seq(
-                                            TextLabel("statement", TextNoDecoration, Set(JavaStatement)),
-                                            NewLine()
+                                            TextLabel("statement1", TextNoDecoration, Set(JavaStatement)),
+                                            TextLabel(";", TextNoDecoration, Set(Punctuation))
                                         ),
                                         Set(JavaStatement)
                                     ),
+                                    NewLine(),
                                     Container(
                                         Seq(
                                             TextLabel("statement2", TextNoDecoration, Set(JavaStatement)),
-                                            NewLine()
+                                            TextLabel(";", TextNoDecoration, Set(Punctuation))
+                                        ),
+                                        Set(JavaStatement)
+                                    ),
+                                    NewLine(),
+                                    Container(
+                                        Seq(
+                                            TextLabel("statement3", TextNoDecoration, Set(JavaStatement)),
+                                            TextLabel(";", TextNoDecoration, Set(Punctuation))
                                         ),
                                         Set(JavaStatement)
                                     )
                                 ), Set(MethodBodyContent, MethodTag("com/abc/aaa:abc")))
                             )),
-                            TextLabel("}", TextNoDecoration, Set(Punctuation, ClosingBracket(2))),
-                            NewLine()
+                            TextLabel("}", TextNoDecoration, Set(Punctuation, ClosingBracket(2)))
                         ),
                         Set(MethodBody, MethodTag("com/abc/aaa:abc"))
                     )
@@ -109,6 +116,8 @@ object FigureTreeViewTest {
 
         shell.setLayout(new FillLayout())
         shell.setBounds(100, 100, 800, 600)
+
+        println(methodAbc.flatFigureStream.textRender)
 
         // new FigureTreeView(shell, SWT.NONE, TextLabel("hello", TextNoDecoration, Set()), Seq(), DrawingConfig(15, JFaceResources.getFont(JFaceResources.TEXT_FONT)))
         new FigureTreeView(shell, SWT.NONE, methodAbc, Seq(), DrawingConfig(15, JFaceResources.getFont(JFaceResources.TEXT_FONT)))

@@ -27,20 +27,20 @@ trait FlatFigureSeq {
         }
     }
 
-    def textRender(): String = {
-        val strings = seq.foldLeft((List[String](), ("", false))) { (cc, fig) =>
-            val (result, indentInfo @ (indent, indentAppended)) = cc
-            def withIndent(string: String): String =
-                if (!indentAppended) indent + string else string
+    def textRender: String = {
+        val strings = seq.foldLeft((List[String](), "")) { (cc, fig) =>
+            val (result, indent) = cc
             fig match {
                 case FigureLabel(TextLabel(text, _, _)) =>
-                    (withIndent(text) +: result, (indent, true))
+                    (text +: result, indent)
                 case FigureLabel(SpacingLabel(pixelWidth, spaceCount)) =>
-                    (withIndent(" " * (spaceCount + (pixelWidth / 12))) +: result, (indent, true))
-                case FigureLabel(NewLine()) => ("\n" +: result, (indent, false))
-                case FigureLabel(ColumnSep()) => ("\t" +: result, indentInfo)
-                case FigurePush(Indented(_)) => (result, (indent + (" " * 2), indentAppended))
-                case FigurePop(Indented(_)) => (result, (indent.substring(Math.min(indent.length, 2)), indentAppended))
+                    ((" " * (spaceCount + (pixelWidth / 12))) +: result, indent)
+                case FigureLabel(NewLine()) => (s"\n$indent" +: result, indent)
+                case FigureLabel(ColumnSep()) => ("\t" +: result, indent)
+                case FigurePush(Indented(_)) =>
+                    val newIndent = indent + (" " * 2)
+                    (s"\n$newIndent" +: result, newIndent)
+                case FigurePop(Indented(_)) => ("\n" +: result, indent.substring(Math.min(indent.length, 2)))
                 case _ => cc
             }
         }

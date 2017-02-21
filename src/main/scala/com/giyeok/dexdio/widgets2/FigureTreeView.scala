@@ -1,5 +1,8 @@
 package com.giyeok.dexdio.widgets2
 
+import scala.collection.immutable.NumericRange
+import scala.collection.immutable.NumericRange.Inclusive
+import scala.collection.immutable.Range.Inclusive
 import com.giyeok.dexdio.widgets2.FlatFigureStream._
 import org.eclipse.swt.SWT
 import org.eclipse.swt.events.DisposeEvent
@@ -44,38 +47,49 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
 
     private var firstRendering: Boolean = true
 
+    def rangeOverlap(a: NumericRange.Inclusive[Long], b: NumericRange.Inclusive[Long]): Boolean = {
+        !((a.end <= b.start) || (a.end <= b.start))
+    }
+
     // layers 순서대로 + layers에서 처리되지 않은 나머지 figure들을 담은 RenderPlan이 반환된다
-    def planRender(figure: Figure, dc: DrawingContext, scroll: Point, screenBound: Rectangle, layers: Seq[Layer]): Seq[RenderPlan] = {
+    private def planRender(dc: DrawingContext, scroll: Point, screenBound: Rectangle, layers: Seq[Layer]): Seq[RenderPlan] = {
         val visibleArea = screenBound + scroll
-        val position = figure.figureExtra.coord.position
         val visibleY = visibleArea.top to visibleArea.bottom
-        if ((visibleY contains position.y) || (visibleY contains (position.y + figure.figureExtra.estimatedHeight))) {
-            // 이 figure가 화면에 보여질 y와 겹치는 영역에 있어서 화면에 표시될 가능성이 있음
-            figure match {
-                case label: Label =>
-                    val visibleX = visibleArea.left to visibleArea.right
-                    if ((visibleX contains position.x) || (visibleX contains position.x + label.labelExtra.measuredWidth)) {
-                        // 이 label은 보이는 영역 안에 있어서 보임
-                        // TODO RenderPlan에 추가함
-                    }
-                case Actionable(content) => // content 에 대해서 처리
-                case container: Container =>
-                    container.flatFigureStream
-                case deferred: Deferred =>
-                    val content = deferred.content
-                    if (deferred.figureExtra.estimatedHeight != content.figureExtra.estimatedHeight) {
-                        // TODO deferred가 붙어있는 anchor에게 deferred의 사이즈가 바뀌었음을 알려줘서 relayout하고
-                        // deferred.figureExtra.estimatedHeight 를 업데이트한다
-                    }
-                // content 에 대해서 처리
-                case Indented(content) => // content에 대해서 처리
-                case transformable: Transformable => // transformable.content 에 대해서 처리
+        def traverse(figure: Figure, top: Long, left: Long, indent: Int) = {
+            val position = figure.figureExtra.coord.position
+            /*
+            val occupyingY = position.y to (position.y + figure.figureExtra.estimatedHeight)
+            if (rangeOverlap(visibleY, occupyingY)) {
+                // 이 figure가 화면에 보여질 y와 겹치는 영역에 있어서 화면에 표시될 가능성이 있음
+                figure match {
+                    case label: Label =>
+                        val visibleX = visibleArea.left to visibleArea.right
+                        if ((visibleX contains position.x) || (visibleX contains position.x + label.labelExtra.measuredWidth)) {
+                            // 이 label은 보이는 영역 안에 있어서 보임
+                            // TODO RenderPlan에 추가함
+                        }
+                    case Actionable(content) => // content 에 대해서 처리
+                    case container: Container =>
+                        container.flatFigureStream
+                    case deferred: Deferred =>
+                        val content = deferred.content
+                        if (deferred.figureExtra.estimatedHeight != content.figureExtra.estimatedHeight) {
+                            // TODO deferred가 붙어있는 anchor에게 deferred의 사이즈가 바뀌었음을 알려줘서 relayout하고
+                            // deferred.figureExtra.estimatedHeight 를 업데이트한다
+                        }
+                    // content 에 대해서 처리
+                    case Indented(content) => // content에 대해서 처리
+                    case transformable: Transformable => // transformable.content 에 대해서 처리
+                }
             }
+            */
+            figure.flatFigureStream.lines
+            // scroll을 빼서 그게 bounds 안에 있으면 그리고 아니면 끝
+            // TODO
+            Seq()
         }
-        figure.flatFigureStream.lines
-        // scroll을 빼서 그게 bounds 안에 있으면 그리고 아니면 끝
-        // TODO
-        Seq()
+        traverse(root, 0, 0, 0)
+        ???
     }
 
     def executeRenderPlan(renderPlan: RenderPlan): Unit = {
@@ -93,6 +107,7 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
         val dc = DrawingContext(e.gc, drawingConfig)
 
         if (firstRendering) {
+            root.figureExtra.coord = new AnchorCoord(new Anchor(Point(0, 0)), Point(0, 0))
             root.containerExtra.prepareForTheFirstTime(dc)
             // rootFigure.figureExtra.updateParents()
             firstRendering = false
@@ -107,7 +122,7 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
         updated = List()
 
         val bounds = getBounds
-        val wholeHeight = root.figureExtra.estimatedHeight
+        val wholeHeight = root.figureExtra.estimatedDimension.get.totalHeight
         if (scrollLeft < 0) {
             scrollLeft = 0
         }
@@ -119,7 +134,7 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
             scrollTop = Math.max(0, wholeHeight - bounds.height)
         }
 
-        val plan = planRender(root, dc, Point(scrollLeft, scrollTop), Rectangle(bounds), Seq())
+        val plan = planRender(dc, Point(scrollLeft, scrollTop), Rectangle(bounds), Seq())
         plan foreach executeRenderPlan
 
         getCaret.setBounds(20, 20, 2, 15)

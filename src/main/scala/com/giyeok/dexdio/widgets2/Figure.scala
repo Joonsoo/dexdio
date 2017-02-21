@@ -1,6 +1,7 @@
 package com.giyeok.dexdio.widgets2
 
 import java.util.concurrent.atomic.AtomicLong
+import com.giyeok.dexdio.widgets2.FlatFigureStream._
 import org.eclipse.swt.graphics.Image
 
 // Label은 반드시 직사각형의 영역을 차지한다
@@ -13,9 +14,11 @@ sealed trait Figure {
 
     private[widgets2] var figureExtra = new FigureExtra(this)
 
-    def estimateHeight(dc: DrawingContext): Long
-    private[widgets2] def updateExtraHeight(height: Long): Long = { figureExtra.estimatedHeight = height; height }
-    private[widgets2] def estimateHeightExtra(dc: DrawingContext): Long
+    def updateExtraDimension(dimension: FigureDimension): FigureDimension = {
+        figureExtra.estimatedDimension = Some(dimension)
+        dimension
+    }
+    def estimateDimensionExtra(dc: DrawingContext): FigureDimension
 }
 object Figure {
     private val counter = new AtomicLong()
@@ -28,74 +31,77 @@ sealed trait FigureNoTags extends Figure {
 sealed trait Label extends Figure {
     private[widgets2] var labelExtra = new LabelExtra(this)
 
-    def estimateHeight(dc: DrawingContext): Long =
-        measureDimension(dc).height
+    def estimateDimensionExtra(dc: DrawingContext): FigureDimension = {
+        updateExtraDimension(measureDimension(dc))
+    }
 
-    private[widgets2] def estimateHeightExtra(dc: DrawingContext): Long =
-        updateExtraHeight(estimateHeight(dc))
-
-    def measureDimension(dc: DrawingContext): Dimension
+    def measureDimension(dc: DrawingContext): FigureDimension
 }
 case class TextLabel(text: String, deco: TextDecoration, tags: Set[Tag]) extends Label {
-    def measureDimension(dc: DrawingContext): Dimension =
-        dc.textExtent(text, deco)
+    def measureDimension(dc: DrawingContext): FigureDimension =
+        FigureDimension(dc.textExtent(text, deco), None)
 }
 case class ImageLabel(image: Image, tags: Set[Tag]) extends Label {
-    def measureDimension(dc: DrawingContext): Dimension = {
-        Dimension(image.getImageData.width, image.getImageData.height)
+    def measureDimension(dc: DrawingContext): FigureDimension = {
+        FigureDimension(Dimension(image.getImageData.width, image.getImageData.height), None)
     }
 }
 case class SpacingLabel(pixelWidth: Int, spaceCount: Int) extends Label {
     val tags = Set()
 
-    def measureDimension(dc: DrawingContext): Dimension = {
+    def measureDimension(dc: DrawingContext): FigureDimension = {
         val spaceDim = dc.charSizeMap(' ')
-        Dimension(pixelWidth + spaceDim.width * spaceCount, dc.standardLineHeight)
+        FigureDimension(Dimension(pixelWidth + spaceDim.width * spaceCount, dc.standardLineHeight), None)
     }
 }
 // TODO ColumnRight 추가
 case class ColumnSep() extends Label with FigureNoTags {
-    def measureDimension(dc: DrawingContext): Dimension = Dimension(0, 0)
+    def measureDimension(dc: DrawingContext): FigureDimension =
+        FigureDimension(Dimension.zero, None)
 }
 case class NewLine() extends Label with FigureNoTags {
-    def measureDimension(dc: DrawingContext): Dimension = Dimension(0, 0)
+    def measureDimension(dc: DrawingContext): FigureDimension =
+        FigureDimension(Dimension.zero, Some(0, Dimension.zero))
 }
 
 case class Container(children: Seq[Figure], tags: Set[Tag]) extends Figure {
     private[widgets2] var containerExtra = new ContainerExtra(this)
 
-    def estimateHeight(dc: DrawingContext): Long = {
-        val x = children.foldLeft((0L, 0L)) { (cc, figure) =>
-            val (all, currLine) = cc
-            if (figure.isInstanceOf[NewLine]) {
-                (all + currLine, 0L)
+    def estimateDimensionExtra(dc: DrawingContext): FigureDimension = {
+        val dimension = if (children.isEmpty) {
+            FigureDimension(Dimension.zero, None)
+        } else {
+            val dims = children map { _.estimateDimensionExtra(dc) }
+            val (leadingDims, restDims) = dims span { _.rest.isEmpty }
+            val leading0 = (leadingDims map { _.leading }).foldLeft(Dimension.zero) { _.addRight(_) }
+            if (restDims.isEmpty) {
+                FigureDimension(leading0, None)
             } else {
-                (all, Math.max(currLine, figure.estimateHeight(dc)))
+                val restHead = restDims.head
+                val leading = leading0 addRight restHead.leading
+                val (exclusiveHeight, trailing) = restDims.tail.foldLeft((restHead.exclusiveHeight.get, restHead.trailing.get)) { (cc, dim) =>
+                    val (exclusiveHeightCC, trailingCC) = cc
+                    dim.rest match {
+                        case Some((restExclusiveHeight, restTrailing)) =>
+                            (exclusiveHeightCC + Math.max(trailingCC.height, dim.leading.height) + restExclusiveHeight,
+                                restTrailing)
+                        case None =>
+                            (exclusiveHeightCC, trailingCC addRight dim.leading)
+                    }
+                }
+                FigureDimension(leading, Some(exclusiveHeight, trailing))
             }
         }
-        x._1
-    }
-
-    override private[widgets2] def estimateHeightExtra(dc: DrawingContext): Long = {
-        val x = children.foldLeft((0L, 0L)) { (cc, child) =>
-            val (all, currLine) = cc
-            if (child.isInstanceOf[NewLine]) {
-                (all + currLine, 0L)
-            } else {
-                val newCurrLine = Math.max(currLine, child.estimateHeightExtra(dc))
-                (all, newCurrLine)
-            }
-        }
-        updateExtraHeight(x._1 + x._2)
+        updateExtraDimension(dimension)
     }
 }
 
+// Indented는 자동으로 위아래 NewLine이 추가된다
 case class Indented(content: Figure) extends FigureNoTags {
-    def estimateHeight(dc: DrawingContext): Long =
-        Math.max(content.estimateHeight(dc), dc.standardLineHeight)
-
-    private[widgets2] def estimateHeightExtra(dc: DrawingContext) =
-        updateExtraHeight(estimateHeight(dc))
+    def estimateDimensionExtra(dc: DrawingContext): FigureDimension = {
+        val contentDimension = content.estimateDimensionExtra(dc)
+        updateExtraDimension(FigureDimension(Dimension.zero, Some(contentDimension.totalHeight, Dimension.zero)))
+    }
 }
 
 trait Deferred extends FigureNoTags {
@@ -104,17 +110,18 @@ trait Deferred extends FigureNoTags {
     def content: Figure = deferredExtra.content
 
     def contentFunc: Figure
-    def estimateHeight(dc: DrawingContext): Long
-    def estimateHeightExtra(dc: DrawingContext): Long =
-        updateExtraHeight(estimateHeight(dc))
+
+    // WARN estimateDimensionExtra는 사용시 updateExtraDimension를 빠뜨리지 않도록 특별히 주의해서 잘 작성해야 함
+    def estimateDimensionExtra(dc: DrawingContext): FigureDimension
 }
 object Deferred {
     def apply(contentFunc: => Figure): Deferred = {
         val func: () => Figure = () => contentFunc
 
         new Deferred {
-            override def estimateHeight(dc: DrawingContext) = 100L
-            override def contentFunc = {
+            override def estimateDimensionExtra(dc: DrawingContext): FigureDimension =
+                updateExtraDimension(FigureDimension(Dimension(100, 100), None))
+            override def contentFunc: Figure = {
                 println("Deferred called")
                 func()
             }
@@ -122,11 +129,8 @@ object Deferred {
     }
 }
 case class Actionable(content: Figure) extends FigureNoTags {
-    def estimateHeight(dc: DrawingContext): Long =
-        content.estimateHeight(dc)
-
-    def estimateHeightExtra(dc: DrawingContext): Long =
-        updateExtraHeight(estimateHeight(dc))
+    def estimateDimensionExtra(dc: DrawingContext): FigureDimension =
+        updateExtraDimension(content.estimateDimensionExtra(dc))
 }
 case class Transformable(contents: Map[String, Figure], defaultState: String) extends FigureNoTags {
     private var currentState: String = defaultState
@@ -139,9 +143,6 @@ case class Transformable(contents: Map[String, Figure], defaultState: String) ex
 
     def content: Figure = contents(currentState)
 
-    def estimateHeight(dc: DrawingContext): Long =
-        content.estimateHeight(dc)
-
-    def estimateHeightExtra(dc: DrawingContext): Long =
-        updateExtraHeight(estimateHeight(dc))
+    def estimateDimensionExtra(dc: DrawingContext): FigureDimension =
+        updateExtraDimension(content.estimateDimensionExtra(dc))
 }
