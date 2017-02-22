@@ -50,12 +50,12 @@ case class ColumnSep() extends Label with FigureNoTags {
 }
 
 object NewLine {
-    def dimension(indentPixels: Int): FigureDimension =
-        FigureDimension(Dimension.zero, Some(0, Dimension(indentPixels, 0)))
+    def dimension(dc: DrawingContext, indentPixels: Int): FigureDimension =
+        FigureDimension(Dimension.zero, Some(0, Dimension(indentPixels, dc.standardLineHeight)))
 }
 case class NewLine() extends Label with FigureNoTags {
     def measureDimension(dc: DrawingContext): FigureDimension =
-        NewLine.dimension(0)
+        NewLine.dimension(dc, 0)
 }
 
 case class Container(children: Seq[Figure], tags: Set[Tag]) extends Figure {

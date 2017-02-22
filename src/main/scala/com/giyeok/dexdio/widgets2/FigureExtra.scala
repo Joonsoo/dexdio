@@ -46,9 +46,10 @@ private class FigureExtra(figure: Figure) {
         p.proceed(dimension)
     }
     def estimateLayout(dc: DrawingContext, anchor: Anchor, p: RenderingPoint, indent: Int): RenderingPoint = {
+        // TODO 배치하면서 한 줄이 끝나는 지점에서 해당 줄의 모든 label들을 줄 아래 기준으로 정렬(글자마다 높이가 다른 경우 보기 좋게..)
         figure match {
             case NewLine() =>
-                updateLayout(anchor, p, NewLine.dimension(indent * dc.indentWidth))
+                updateLayout(anchor, p, NewLine.dimension(dc, indent * dc.indentWidth))
             case label: Label =>
                 updateLayout(anchor, p, label.measureDimension(dc))
             case container @ Container(children, _) =>
@@ -56,6 +57,7 @@ private class FigureExtra(figure: Figure) {
                     updateLayout(anchor, p, FigureDimension(Dimension.zero, None))
                 } else {
                     // TODO anchor 말고 container.containerExtra에서 배정한 sub anchor로 하도록 수정
+                    // TODO Anchor의 estimatedDimension 정보 채우도록 수정
                     val p0 = children.foldLeft(p) { (m, i) => i.figureExtra.estimateLayout(dc, anchor, m, indent) }
                     val dims = children map { _.figureExtra.estimatedDimension }
                     val (leadingDims, restDims) = dims span { _.rest.isEmpty }
@@ -80,11 +82,13 @@ private class FigureExtra(figure: Figure) {
                     updateLayout(anchor, p, dimension) ensuringEquals p0
                 }
             case Indented(content) =>
-                val newLinePoint = p.proceed(NewLine.dimension((indent + 1) * dc.indentWidth))
+                val newLinePoint = p.proceed(NewLine.dimension(dc, (indent + 1) * dc.indentWidth))
                 content.figureExtra.estimateLayout(dc, anchor, newLinePoint, indent + 1)
                 updateLayout(anchor, p, FigureDimension(Dimension.zero, Some(content.figureExtra.estimatedDimension.totalHeight, Dimension.zero)))
             case deferred: Deferred =>
+                deferred.deferredExtra.anchor = anchor
                 deferred.deferredExtra.indent = indent
+                deferred.deferredExtra.renderingPoint = p
                 if (!deferred.deferredExtra.isContentSet) {
                     updateLayout(anchor, p, deferred.estimateDimension(dc))
                 } else {
@@ -105,6 +109,8 @@ private class FigureExtra(figure: Figure) {
 
 sealed trait Anchor {
     def position: Point
+
+    private var estimatedDimension: FigureDimension = _
 
     private var refererAnchors = List[Anchor]()
     def appendReferer(anchor: Anchor): Unit = {
@@ -156,7 +162,9 @@ object DeferredExtra {
 }
 
 private class DeferredExtra(deferred: Deferred) {
+    var anchor: Anchor = _
     var indent: Int = 0
+    var renderingPoint: RenderingPoint = _
 
     private var contentCache = Option.empty[Figure]
     def isContentSet: Boolean = contentCache.isDefined

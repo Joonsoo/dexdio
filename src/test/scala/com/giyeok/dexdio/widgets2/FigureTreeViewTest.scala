@@ -34,7 +34,9 @@ object FigureTreeViewTest {
     case object MethodDefinition extends Tag
     case object MethodSignature extends Tag
 
-    val methodAbc = Container(
+    private lazy val largerFont = TextWithFont(new Font(null, "Consolas", 50, SWT.NONE))
+
+    def methodFigure(className: String, methodName: String) = Container(
         Seq(
             Container(
                 Seq(
@@ -42,25 +44,25 @@ object FigureTreeViewTest {
                         Seq(
                             TextLabel("int", TextNoDecoration, Set(TypeTag("type:I"))),
                             SpacingLabel(0, 1),
-                            TextLabel("abc", TextNoDecoration, Set(MethodTag("method:com/abc/aaa:abc"))),
+                            TextLabel(methodName, largerFont, Set(MethodTag(s"method:$className:$methodName"))),
                             TextLabel("(", TextNoDecoration, Set(Punctuation, OpeningBracket(1))),
                             Container(Seq(
                                 Container(Seq(
-                                    TextLabel("int", TextNoDecoration, Set(ParameterType, ParameterTag("com/abc/aaa:abc", 0), TypeTag("I"))),
+                                    TextLabel("int", TextNoDecoration, Set(ParameterType, ParameterTag(s"$className:$methodName", 0), TypeTag("I"))),
                                     SpacingLabel(0, 1),
-                                    TextLabel("a", TextNoDecoration, Set(ParameterName, ParameterTag("com/abc/aaa:abc", 0)))
-                                ), Set(Parameter, ParameterTag("com/abc/aaa:abc", 0))),
+                                    TextLabel("a", TextNoDecoration, Set(ParameterName, ParameterTag(s"$className:$methodName", 0)))
+                                ), Set(Parameter, ParameterTag(s"$className:$methodName", 0))),
                                 TextLabel(", ", TextNoDecoration, Set(Punctuation)),
                                 Container(Seq(
-                                    TextLabel("String", TextNoDecoration, Set(ParameterType, ParameterTag("com/abc/aaa:abc", 1), TypeTag("Ljava/lang/String"))),
+                                    TextLabel("String", TextNoDecoration, Set(ParameterType, ParameterTag(s"$className:$methodName", 1), TypeTag("Ljava/lang/String"))),
                                     SpacingLabel(0, 1),
-                                    TextLabel("b", TextNoDecoration, Set(ParameterName, ParameterTag("com/abc/aaa/:abc", 1)))
-                                ), Set(Parameter, ParameterTag("com/abc/aaa:abc", 1)))
-                            ), Set(ParameterList, ParameterTag("com/abc/aaa:abc", 1))),
+                                    TextLabel("b", TextNoDecoration, Set(ParameterName, ParameterTag(s"$className:$methodName", 1)))
+                                ), Set(Parameter, ParameterTag(s"$className:$methodName", 1)))
+                            ), Set(ParameterList, ParameterTag(s"$className:$methodName", 1))),
                             TextLabel(")", TextNoDecoration, Set(Punctuation, ClosingBracket(1))),
                             SpacingLabel(0, 1)
                         ),
-                        Set(MethodDefinition, MethodTag("com/abc/aaa:abc"))
+                        Set(MethodDefinition, MethodTag(s"$className:$methodName"))
                     ),
 
                     Container(
@@ -94,24 +96,24 @@ object FigureTreeViewTest {
                                     NewLine(),
                                     Container(
                                         Seq(
-                                            TextLabel("very_very_long_long_long_long_long_statement_it_is", TextNoDecoration, Set(JavaStatement)),
+                                            TextLabel("very_very_long_long_long_long_long_statement_it_is_indeed", TextNoDecoration, Set(JavaStatement)),
                                             TextLabel(";", TextNoDecoration, Set(Punctuation))
                                         ),
                                         Set(JavaStatement)
                                     ),
                                     NewLine(),
                                     Container(
-                                        ("very_very_long_long_long_long_long_statement_it_is".toCharArray map { c => TextLabel(c.toString, TextNoDecoration, Set(JavaStatement)) }).toSeq :+ TextLabel(";", TextNoDecoration, Set(Punctuation)),
+                                        ("very_very_long_long_long_long_long_statement_it_is_indeed".toCharArray map { c => TextLabel(c.toString, TextNoDecoration, Set(JavaStatement)) }).toSeq :+ TextLabel(";", TextNoDecoration, Set(Punctuation)),
                                         Set(JavaStatement)
                                     )
-                                ), Set(MethodBodyContent, MethodTag("com/abc/aaa:abc")))
+                                ), Set(MethodBodyContent, MethodTag(s"$className:$methodName")))
                             )),
                             TextLabel("}", TextNoDecoration, Set(Punctuation, ClosingBracket(2)))
                         ),
-                        Set(MethodBody, MethodTag("com/abc/aaa:abc"))
+                        Set(MethodBody, MethodTag(s"$className:$methodName"))
                     )
                 ),
-                Set(MethodDefinition, MethodTag("com/abc/aaa:abc"))
+                Set(MethodDefinition, MethodTag(s"$className:$methodName"))
             )
         ),
         Set()
@@ -120,23 +122,32 @@ object FigureTreeViewTest {
     /*
     import com.giyeok.dexdio.widgets2._
     import com.giyeok.dexdio.widgets2.FlatFigureStream._
-    */
+    val methodAbc = methodFigure("aaa/bbb/ccc", "abc")
     val stream = FigureTreeViewTest.methodAbc.flatFigureStream
     val linesStream = stream.lines
+    */
 
     def main(args: Array[String]): Unit = {
         val display = new Display()
         val shell = new Shell(display)
 
+        val figure = {
+            val methodFigures = {
+                def methodAt(idx: Int) = Deferred(methodFigure("aaa/bbb/ccc", s"method$idx"))
+                methodAt(0) +: ((1 until 10000) flatMap { i => Seq(NewLine(), NewLine(), methodAt(i)) })
+            }
+            Container(methodFigures, Set())
+        }
+
         shell.setLayout(new FillLayout())
         shell.setBounds(100, 100, 800, 600)
 
-        println(methodAbc.flatFigureStream.textRender)
+        // println(figure.flatFigureStream.textRender)
 
         // new FigureTreeView(shell, SWT.NONE, TextLabel("hello", TextNoDecoration, Set()), Seq(), DrawingConfig(15, JFaceResources.getFont(JFaceResources.TEXT_FONT)))
         val systemFont = JFaceResources.getFont(JFaceResources.TEXT_FONT)
         val myFont = new Font(null, "Gothic", 30, SWT.ITALIC | SWT.BOLD)
-        new FigureTreeView(shell, SWT.NONE, methodAbc, Seq(), DrawingConfig(SpacingLabel(0, 2), myFont))
+        new FigureTreeView(shell, SWT.NONE, figure, Seq(), DrawingConfig(SpacingLabel(0, 2), myFont))
 
         shell.open()
 

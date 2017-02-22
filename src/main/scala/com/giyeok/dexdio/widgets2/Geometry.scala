@@ -31,6 +31,15 @@ case class Rectangle(leftTop: Point, dimension: Dimension) {
     def top: Long = leftTop.y
     def right: Long = left + dimension.width
     def bottom: Long = top + dimension.height
+    def width: Long = dimension.width
+    def height: Long = dimension.height
+
+    def shrink(left: Int, top: Int, right: Int, bottom: Int): Rectangle = {
+        Rectangle(
+            Point(leftTop.x + left, leftTop.y + top),
+            Dimension(dimension.width - left - right, dimension.height - top - bottom)
+        )
+    }
 }
 
 object Rectangle {

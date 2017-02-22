@@ -35,8 +35,9 @@ case class DrawingContext(gc: GC, conf: DrawingConfig) {
     lazy val standardLineHeight: Int = (charSizeMap map { _._2.height }).max.toInt
 
     def textExtent(text: String, deco: TextDecoration): Dimension = {
-        deco.applyTo(gc)
-        val dim = gc.textExtent(text)
-        Dimension(dim.x, dim.y)
+        deco.execute(gc) {
+            val dim = gc.textExtent(text)
+            Dimension(dim.x, dim.y)
+        }
     }
 }
