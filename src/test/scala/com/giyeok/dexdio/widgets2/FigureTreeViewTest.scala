@@ -1,6 +1,5 @@
 package com.giyeok.dexdio.widgets2
 
-import com.giyeok.dexdio.widgets2.FlatFigureStream._
 import org.eclipse.jface.resource.JFaceResources
 import org.eclipse.swt.SWT
 import org.eclipse.swt.graphics.Font
@@ -34,7 +33,7 @@ object FigureTreeViewTest {
     case object MethodDefinition extends Tag
     case object MethodSignature extends Tag
 
-    private lazy val largerFont = TextWithFont(new Font(null, "Consolas", 50, SWT.NONE))
+    private lazy val largerFont = TextWithFont(new Font(null, "Menlo", 50, SWT.NONE))
 
     def methodFigure(className: String, methodName: String) = Container(
         Seq(
@@ -68,7 +67,7 @@ object FigureTreeViewTest {
                     Container(
                         Seq(
                             TextLabel("{", TextNoDecoration, Set(Punctuation, OpeningBracket(2))),
-                            Indented(Deferred(
+                            Indented(
                                 Container(Seq(
                                     Container(
                                         Seq(
@@ -107,7 +106,7 @@ object FigureTreeViewTest {
                                         Set(JavaStatement)
                                     )
                                 ), Set(MethodBodyContent, MethodTag(s"$className:$methodName")))
-                            )),
+                            ),
                             TextLabel("}", TextNoDecoration, Set(Punctuation, ClosingBracket(2)))
                         ),
                         Set(MethodBody, MethodTag(s"$className:$methodName"))
@@ -132,9 +131,9 @@ object FigureTreeViewTest {
         val shell = new Shell(display)
 
         val figure = {
-            val methodFigures = {
-                def methodAt(idx: Int) = Deferred(methodFigure("aaa/bbb/ccc", s"method$idx"))
-                methodAt(0) +: ((1 until 10000) flatMap { i => Seq(NewLine(), NewLine(), methodAt(i)) })
+            val methodFigures: Seq[Figure] = {
+                def methodAt(idx: Int) = methodFigure("aaa/bbb/ccc", s"method$idx")
+                methodAt(0) +: ((0 until 1) flatMap { i => Seq(NewLine(), NewLine(), methodAt(i)) })
             }
             Container(methodFigures, Set())
         }
@@ -146,8 +145,8 @@ object FigureTreeViewTest {
 
         // new FigureTreeView(shell, SWT.NONE, TextLabel("hello", TextNoDecoration, Set()), Seq(), DrawingConfig(15, JFaceResources.getFont(JFaceResources.TEXT_FONT)))
         val systemFont = JFaceResources.getFont(JFaceResources.TEXT_FONT)
-        val myFont = new Font(null, "Gothic", 30, SWT.ITALIC | SWT.BOLD)
-        new FigureTreeView(shell, SWT.NONE, figure, Seq(), DrawingConfig(SpacingLabel(0, 2), myFont))
+        val myFont = new Font(null, "Menlo", 30, SWT.ITALIC | SWT.BOLD)
+        new FigureTreeView(shell, SWT.NONE, figure, Seq(), DrawingConfig(SpacingLabel(pixelWidth = 0, spaceCount = 2), myFont))
 
         shell.open()
 

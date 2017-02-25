@@ -7,31 +7,36 @@ import org.eclipse.swt.graphics.Image
 
 trait Tag
 
-sealed trait Figure {
-    val id: Long = Figure.newId()
+sealed trait AbstractFigure {
+    val id: Long = AbstractFigure.newId()
+}
+object AbstractFigure {
+    private val counter = new AtomicLong()
+    private def newId(): Long = counter.incrementAndGet()
+}
+
+// TODO figureExtra 구조 해체해서 View에 넣기 -> 현재 구조로는 Figure class 재사용이 불가능
+
+case object RootFigure extends AbstractFigure
+sealed trait Figure extends AbstractFigure {
     val tags: Set[Tag]
 
     private[widgets2] var figureExtra = new FigureExtra(this)
-}
-object Figure {
-    private val counter = new AtomicLong()
-    private def newId(): Long = counter.incrementAndGet()
 }
 sealed trait FigureNoTags extends Figure {
     val tags = Set()
 }
 
 sealed trait Label extends Figure {
-    def measureDimension(dc: DrawingContext): FigureDimension
+    def measureDimension(dc: DrawingContext): Dimension
 }
 case class TextLabel(text: String, deco: TextDecoration, tags: Set[Tag]) extends Label {
-    def measureDimension(dc: DrawingContext): FigureDimension =
-        FigureDimension(dc.textExtent(text, deco), None)
+    def measureDimension(dc: DrawingContext): Dimension =
+        dc.textExtent(text, deco)
 }
 case class ImageLabel(image: Image, tags: Set[Tag]) extends Label {
-    def measureDimension(dc: DrawingContext): FigureDimension = {
-        FigureDimension(Dimension(image.getImageData.width, image.getImageData.height), None)
-    }
+    def measureDimension(dc: DrawingContext): Dimension =
+        Dimension(image.getImageData.width, image.getImageData.height)
 }
 case class SpacingLabel(pixelWidth: Int, spaceCount: Int) extends Label {
     val tags = Set()
@@ -40,24 +45,22 @@ case class SpacingLabel(pixelWidth: Int, spaceCount: Int) extends Label {
         val spaceDim = dc.charSizeMap(' ')
         pixelWidth + spaceDim.width.toInt * spaceCount
     }
-    def measureDimension(dc: DrawingContext): FigureDimension =
-        FigureDimension(Dimension(widthInPixel(dc), dc.standardLineHeight), None)
+    def measureDimension(dc: DrawingContext): Dimension =
+        Dimension(widthInPixel(dc), dc.standardLineHeight)
 }
 // TODO ColumnRight 추가
 case class ColumnSep() extends Label with FigureNoTags {
-    def measureDimension(dc: DrawingContext): FigureDimension =
-        FigureDimension(Dimension.zero, None)
+    def measureDimension(dc: DrawingContext): Dimension =
+        Dimension.zero
 }
 
-object NewLine {
-    def dimension(dc: DrawingContext, indentPixels: Int): FigureDimension =
-        FigureDimension(Dimension.zero, Some(0, Dimension(indentPixels, dc.standardLineHeight)))
-}
 case class NewLine() extends Label with FigureNoTags {
-    def measureDimension(dc: DrawingContext): FigureDimension =
-        NewLine.dimension(dc, 0)
+    def measureDimension(dc: DrawingContext): Dimension =
+        Dimension.zero
 }
 
+private[widgets2] case class Chunk(children: Seq[Figure]) extends FigureNoTags {
+}
 case class Container(children: Seq[Figure], tags: Set[Tag]) extends Figure {
     private[widgets2] var containerExtra = new ContainerExtra(this)
 }

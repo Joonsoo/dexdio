@@ -46,3 +46,27 @@ object Rectangle {
     def apply(rect: org.eclipse.swt.graphics.Rectangle): Rectangle =
         Rectangle(Point(rect.x, rect.y), Dimension(rect.width, rect.height))
 }
+
+case class FigureDimension(leading: Dimension, rest: Option[(Long, Dimension)]) {
+    def exclusiveHeight: Option[Long] = rest map { _._1 }
+    def trailing: Option[Dimension] = rest map { _._2 }
+    def totalHeight: Long = leading.height + (rest map { r => r._1 + r._2.height }).getOrElse(0L)
+}
+
+case class RenderingPoint(x: Long, y: Long) {
+    def proceed(dimension: FigureDimension, leadingLine: LineLabels): RenderingPoint =
+        dimension.rest match {
+            case Some(rest) =>
+                RenderingPoint(
+                    rest._2.width, y + leadingLine.lineHeight + rest._1
+                )
+            case None =>
+                RenderingPoint(
+                    x + dimension.leading.width, y
+                )
+        }
+    def proceed(figure: Figure): RenderingPoint = {
+        val extra = figure.figureExtra
+        proceed(extra.dimension, extra.leadingLine.lineLabels)
+    }
+}

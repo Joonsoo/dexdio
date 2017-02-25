@@ -1,37 +1,50 @@
 package com.giyeok.dexdio.widgets2
 
-import scala.collection.immutable.IndexedSeq
+class LineLabels {
+    // TODO labels를 FlatFigure로 바꾸는게 좋을까?
+    private var labels = List[Label]()
+    private var lineHeightCache = Option.empty[Long]
 
-case class FigureDimension(leading: Dimension, rest: Option[(Long, Dimension)]) {
-    def exclusiveHeight: Option[Long] = rest map { _._1 }
-    def trailing: Option[Dimension] = rest map { _._2 }
-    def totalHeight: Long = leading.height + (rest map { r => r._1 + r._2.height }).getOrElse(0L)
+    // TODO LineLabelsPointer.idx 처리
+    def add(label: Label): LineLabelsPointer = {
+        labels +:= label
+        lineHeightCache = None
+        LineLabelsPointer(this, 0)
+    }
+    def lastPointer: LineLabelsPointer = {
+        lineHeightCache = None
+        LineLabelsPointer(this, 0)
+    }
+
+    def splitAt(idx: Int): LineLabels = {
+        // TODO 현재 라인에서 idx 이후 부분은 제거하고 새 LineLabels에 편입시켜준다
+        lineHeightCache = None
+        ???
+    }
+
+    def lineHeight: Long = if (labels.isEmpty) 0 else {
+        lineHeightCache match {
+            case Some(height) => height
+            case None =>
+                val h = (labels map { _.figureExtra.dimension.totalHeight }).max
+                lineHeightCache = Some(h)
+                h
+        }
+    }
 }
 
-case class RenderingPoint(leftTop: Point, lineMax: Long) {
-    def top: Long = leftTop.y
-    def left: Long = leftTop.x
-
-    def proceed(dimension: FigureDimension): RenderingPoint =
-        dimension.rest match {
-            case Some(rest) =>
-                RenderingPoint(
-                    Point(rest._2.width, top + Math.max(lineMax, dimension.leading.height) + rest._1),
-                    rest._2.height
-                )
-            case None =>
-                RenderingPoint(
-                    Point(left + dimension.leading.width, top),
-                    Math.max(lineMax, dimension.leading.height)
-                )
-        }
+// Deferred 등에 의해서 한 라인인줄 알았던 내용이 두 줄로 쪼개질 때 idx가 필요하다
+case class LineLabelsPointer(lineLabels: LineLabels, idx: Int) {
+    def splitLine(): LineLabels = {
+        lineLabels.splitAt(idx)
+    }
 }
 
 private class FigureExtra(figure: Figure) {
-    var estimatedDimension: FigureDimension = _
-    // coord는 ContainerExtra.prepareForFirstTime에서 셋팅되고 FigureTreeView.planRender에서 사용되는데,
-    // planRender는 반드시 prepareForFirstTime이 호출된 이후에 실행되므로 사용되는 시점에 coord가 null이어서는 안된다
-    var estimatedCoord: AnchorCoord = _
+    var parent: AbstractFigure = _
+    var dimension: FigureDimension = _
+    var leadingLine: LineLabelsPointer = _
+    var trailingLine: Option[LineLabelsPointer] = _
 
     implicit final class MyEnsuring[A](private val self: A) {
         def ensuringEquals(other: A): A = {
@@ -40,120 +53,159 @@ private class FigureExtra(figure: Figure) {
         }
     }
 
-    def updateLayout(anchor: Anchor, p: RenderingPoint, dimension: FigureDimension): RenderingPoint = {
-        estimatedDimension = dimension
-        estimatedCoord = new AnchorCoord(anchor, Point(p.left, p.top) - anchor.position)
-        p.proceed(dimension)
-    }
-    def estimateLayout(dc: DrawingContext, anchor: Anchor, p: RenderingPoint, indent: Int): RenderingPoint = {
-        // TODO 배치하면서 한 줄이 끝나는 지점에서 해당 줄의 모든 label들을 줄 아래 기준으로 정렬(글자마다 높이가 다른 경우 보기 좋게..)
+    def updateParent(parent: AbstractFigure): Unit = {
+        this.parent = parent
         figure match {
-            case NewLine() =>
-                updateLayout(anchor, p, NewLine.dimension(dc, indent * dc.indentWidth))
-            case label: Label =>
-                updateLayout(anchor, p, label.measureDimension(dc))
-            case container @ Container(children, _) =>
-                if (children.isEmpty) {
-                    updateLayout(anchor, p, FigureDimension(Dimension.zero, None))
-                } else {
-                    // TODO anchor 말고 container.containerExtra에서 배정한 sub anchor로 하도록 수정
-                    // TODO Anchor의 estimatedDimension 정보 채우도록 수정
-                    val p0 = children.foldLeft(p) { (m, i) => i.figureExtra.estimateLayout(dc, anchor, m, indent) }
-                    val dims = children map { _.figureExtra.estimatedDimension }
-                    val (leadingDims, restDims) = dims span { _.rest.isEmpty }
-                    val leading0 = (leadingDims map { _.leading }).foldLeft(Dimension.zero) { _.addRight(_) }
-                    val dimension = if (restDims.isEmpty) {
-                        FigureDimension(leading0, None)
-                    } else {
-                        val restHead = restDims.head
-                        val leading = leading0 addRight restHead.leading
-                        val (exclusiveHeight, trailing) = restDims.tail.foldLeft((restHead.exclusiveHeight.get, restHead.trailing.get)) { (cc, dim) =>
-                            val (exclusiveHeightCC, trailingCC) = cc
-                            dim.rest match {
-                                case Some((restExclusiveHeight, restTrailing)) =>
-                                    (exclusiveHeightCC + Math.max(trailingCC.height, dim.leading.height) + restExclusiveHeight,
-                                        restTrailing)
-                                case None =>
-                                    (exclusiveHeightCC, trailingCC addRight dim.leading)
-                            }
-                        }
-                        FigureDimension(leading, Some(exclusiveHeight, trailing))
-                    }
-                    updateLayout(anchor, p, dimension) ensuringEquals p0
-                }
-            case Indented(content) =>
-                val newLinePoint = p.proceed(NewLine.dimension(dc, (indent + 1) * dc.indentWidth))
-                content.figureExtra.estimateLayout(dc, anchor, newLinePoint, indent + 1)
-                updateLayout(anchor, p, FigureDimension(Dimension.zero, Some(content.figureExtra.estimatedDimension.totalHeight, Dimension.zero)))
+            case _: Label => // nothing to do
+            case chunk @ Chunk(children) =>
+                children foreach { _.figureExtra.updateParent(chunk) }
+            case container: Container =>
+                container.containerExtra.chunkChildren foreach { _.figureExtra.updateParent(container) }
+            case indented @ Indented(content) =>
+                content.figureExtra.updateParent(indented)
             case deferred: Deferred =>
-                deferred.deferredExtra.anchor = anchor
-                deferred.deferredExtra.indent = indent
-                deferred.deferredExtra.renderingPoint = p
-                if (!deferred.deferredExtra.isContentSet) {
-                    updateLayout(anchor, p, deferred.estimateDimension(dc))
-                } else {
-                    val p0 = deferred.content.figureExtra.estimateLayout(dc, anchor, p, indent)
-                    updateLayout(anchor, p, deferred.content.figureExtra.estimatedDimension) ensuringEquals p0
+                if (deferred.deferredExtra.isContentSet) {
+                    deferred.content.figureExtra.updateParent(deferred)
                 }
-            case Actionable(content) =>
-                val p0 = content.figureExtra.estimateLayout(dc, anchor, p, indent)
-                updateLayout(anchor, p, content.figureExtra.estimatedDimension) ensuringEquals p
+            case actionable @ Actionable(content) =>
+                content.figureExtra.updateParent(actionable)
             case transformable: Transformable =>
-                // transformable.content.figureExtra.estimateLayout()
-                val content = transformable.content
-                val p0 = content.figureExtra.estimateLayout(dc, anchor, p, indent)
-                updateLayout(anchor, p, content.figureExtra.estimatedDimension) ensuringEquals p0
+                transformable.content.figureExtra.updateParent(transformable)
         }
     }
-}
 
-sealed trait Anchor {
-    def position: Point
+    def updateDimension(dc: DrawingContext, lineLabels: LineLabels): LineLabels = {
+        // TODO lineLabels를 LineLabels 대신 LineLabelsPointer로 받고 밑에서 new LineLabels 하는 부분을 split을 이용해야 할듯?
+        def updateMultiFigures(children: Seq[Figure], lineLabels: LineLabels): LineLabels = {
+            if (children.isEmpty) {
+                this.leadingLine = lineLabels.lastPointer
+                this.dimension = FigureDimension(Dimension.zero, None)
+                this.trailingLine = None
+                lineLabels
+            } else {
+                this.leadingLine = lineLabels.lastPointer
+                val finalLineLabels = children.foldLeft(lineLabels) { (m, figure) =>
+                    figure.figureExtra.updateDimension(dc, m)
+                }
+                val totalDimension = {
+                    val childrenDims = children map { _.figureExtra.dimension }
+                    val (leading, rest) = childrenDims span { _.rest.isEmpty }
+                    val leadingDimension = leading.foldLeft(Dimension.zero) { (m, i) => m.addRight(i.leading) }
+                    if (rest.isEmpty) {
+                        FigureDimension(leadingDimension, None)
+                    } else {
+                        val (exclusiveHeight, trailingDimension) = rest.tail.foldLeft(rest.head.rest.get) { (cc, child) =>
+                            val (height, trailing) = cc
+                            child.rest match {
+                                case Some((restHeight, restTrailing)) =>
+                                    (height + Math.max(trailing.height, child.leading.height) + restHeight, restTrailing)
+                                case None =>
+                                    (height, trailing addRight child.leading)
+                            }
+                        }
+                        FigureDimension(leadingDimension, Some((exclusiveHeight, trailingDimension)))
+                    }
+                }
+                this.dimension = totalDimension
+                if (totalDimension.rest.isEmpty) {
+                    this.trailingLine = None
+                    assert(lineLabels eq finalLineLabels)
+                    lineLabels
+                } else {
+                    this.trailingLine = Some(finalLineLabels.lastPointer)
+                    finalLineLabels
+                }
+            }
+        }
 
-    private var estimatedDimension: FigureDimension = _
+        def updateContentDimension(content: Figure, lineLabels: LineLabels): LineLabels = {
+            this.leadingLine = lineLabels.lastPointer
+            val trailingLineLabels = content.figureExtra.updateDimension(dc, lineLabels)
+            this.dimension = content.figureExtra.dimension
+            if (content.figureExtra.dimension.rest.isEmpty) {
+                this.trailingLine = None
+                assert(lineLabels eq trailingLineLabels)
+                lineLabels
+            } else {
+                this.trailingLine = Some(trailingLineLabels.lastPointer)
+                trailingLineLabels
+            }
+        }
 
-    private var refererAnchors = List[Anchor]()
-    def appendReferer(anchor: Anchor): Unit = {
-        refererAnchors +:= anchor
+        figure match {
+            case newLine: NewLine =>
+                this.dimension = FigureDimension(Dimension.zero, Some((0L, Dimension(0, dc.standardLineHeight))))
+                this.leadingLine = lineLabels.add(newLine)
+                val newLineLabels = new LineLabels
+                this.trailingLine = Some(newLineLabels.lastPointer)
+                newLineLabels
+
+            case label: Label =>
+                this.dimension = FigureDimension(label.measureDimension(dc), None)
+                this.leadingLine = lineLabels.add(label)
+                this.trailingLine = None
+                lineLabels
+
+            case Chunk(children) =>
+                updateMultiFigures(children, lineLabels)
+
+            case Container(children, _) =>
+                updateMultiFigures(children, lineLabels)
+
+            case Indented(content) =>
+                this.leadingLine = lineLabels.lastPointer
+                content.figureExtra.updateDimension(dc, new LineLabels)
+                this.dimension = FigureDimension(Dimension.zero, Some(content.figureExtra.dimension.totalHeight, Dimension.zero))
+                val newLineLabels = new LineLabels
+                this.trailingLine = Some(newLineLabels.lastPointer)
+                newLineLabels
+
+            case deferred: Deferred =>
+                this.leadingLine = lineLabels.lastPointer
+                if (!deferred.deferredExtra.isContentSet) {
+                    this.dimension = deferred.estimateDimension(dc)
+                    if (this.dimension.rest.isEmpty) {
+                        this.trailingLine = None
+                        lineLabels
+                    } else {
+                        val newLineLabels = new LineLabels
+                        this.trailingLine = Some(newLineLabels.lastPointer)
+                        newLineLabels
+                    }
+                } else {
+                    updateContentDimension(deferred.content, lineLabels)
+                }
+
+            case Actionable(content) =>
+                updateContentDimension(content, lineLabels)
+
+            case transformable: Transformable =>
+                // transformable.content.figureExtra.estimateLayout()
+                updateContentDimension(transformable.content, lineLabels)
+        }
     }
 
-    private var refererCoords = List[AnchorCoord]()
-    def appendReferer(coord: AnchorCoord): Unit = {
-        refererCoords +:= coord
-    }
-}
-object AnchorRoot extends Anchor {
-    def position: Point = Point.zero
-}
-class AnchorBranch(parent: Anchor, initialPosition: Point) extends Anchor {
-    parent.appendReferer(this)
-
-    private var _position: Point = initialPosition
-    def position: Point = _position
-}
-
-class AnchorCoord(val anchor: Anchor, initialRelative: Point) {
-    anchor.appendReferer(this)
-
-    private var _relative = initialRelative
-    def relative: Point = _relative
-
-    def position: Point = anchor.position + relative
+    // TODO totalWidth도 만들기
+    def totalHeight: Long =
+        if (dimension.rest.isEmpty) {
+            leadingLine.lineLabels.lineHeight
+        } else {
+            if (trailingLine == null) {
+                println(figure)
+                println("???")
+            }
+            leadingLine.lineLabels.lineHeight + dimension.rest.get._1 + trailingLine.get.lineLabels.lineHeight
+        }
 }
 
 private class ContainerExtra(container: Container) {
-    private val anchorElemsMax = 1000
-    private val anchorsCounts = (container.children.size / anchorElemsMax) + 1
-    // Anchor의 최초 위치는 무관함 - 0, 0으로 고정해서 사용해도 상관 없음
-    private var anchors: IndexedSeq[Anchor] = _
-
-    def prepareAnchors(parentAnchor: Anchor, dc: DrawingContext): Unit = {
-        anchors = (0 until anchorsCounts) map { _ => new AnchorBranch(parentAnchor, Point.zero) }
-
-        for ((figures, anchor) <- container.children.grouped(container.children.size / anchorsCounts).toSeq zip anchors) {
-            // anchor 셋팅
-            figures foreach { _.figureExtra.estimatedCoord = new AnchorCoord(anchor, Point.zero) }
-        }
+    // children의 크기가 너무 커지지 않도록 Chunk로 묶기
+    val chunkChildren: Seq[Figure] = {
+        def group(children: Seq[Figure]): Seq[Figure] =
+            if (children.size < 100) children else {
+                group((children grouped (children.size / 100) map Chunk).toSeq)
+            }
+        group(container.children)
     }
 }
 
@@ -162,10 +214,6 @@ object DeferredExtra {
 }
 
 private class DeferredExtra(deferred: Deferred) {
-    var anchor: Anchor = _
-    var indent: Int = 0
-    var renderingPoint: RenderingPoint = _
-
     private var contentCache = Option.empty[Figure]
     def isContentSet: Boolean = contentCache.isDefined
     def clearCache(): Unit = { contentCache = None }

@@ -16,7 +16,6 @@ import org.eclipse.swt.widgets.Canvas
 import org.eclipse.swt.widgets.Caret
 import org.eclipse.swt.widgets.Composite
 
-// TODO Figure에서 LineNum 처리
 sealed trait Layer
 case class TagsLayer(tags: Set[Tag]) extends Layer
 case class LinesLayer(lineNums: Set[Int]) extends Layer
@@ -29,7 +28,7 @@ case class CompositeLayer(tags: Set[Tag], lineNums: Set[Int]) extends Layer
 //   - 하나의 figure에 대한 bound는 분리되지 않고 한 덩어리로 표현되어야 한다
 class RenderPlan
 
-class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Seq[(Figure, Int)], drawingConfig: DrawingConfig)
+class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(Figure, Int)], drawingConfig: DrawingConfig)
         extends Canvas(parent, style | SWT.DOUBLE_BUFFERED) with PaintListener with DisposeListener with KeyListener with MouseWheelListener {
 
     private var scrollLeft = 0L
@@ -50,17 +49,17 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
 
     private var firstRendering: Boolean = true
 
-    def rangeOverlap(a: NumericRange.Inclusive[Long], b: NumericRange.Inclusive[Long]): Boolean = {
-        // TODO 여기 문제 있음 수정요
-        !((a.end <= b.start) || (a.end <= b.start))
-    }
+    def rangeOverlap(a: NumericRange.Inclusive[Long], b: NumericRange.Inclusive[Long]): Boolean =
+        !((a.end < b.start) || (b.end < a.start))
 
-    private def drawLabel(dc: DrawingContext, scroll: Point, label: Label): Unit = {
+    private def drawLabel(dc: DrawingContext, p: RenderingPoint, scroll: Point, label: Label): Unit = {
+        val lineHeight = label.figureExtra.leadingLine.lineLabels.lineHeight
+        val (absoluteX, absoluteY) = (p.x, p.y + (lineHeight - label.figureExtra.dimension.leading.height))
+        val (screenX, screenY) = ((absoluteX - scroll.x).toInt, (absoluteY - scroll.y).toInt)
         label match {
             case TextLabel(text, deco, _) =>
-                val leftTop = label.figureExtra.estimatedCoord.position - scroll
                 deco.execute(dc.gc) {
-                    dc.gc.drawText(text, leftTop.x.toInt, leftTop.y.toInt, true)
+                    dc.gc.drawText(text, screenX, screenY, true)
                 }
             case ImageLabel(image, _) =>
                 ???
@@ -72,38 +71,43 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
 
     // 무식하게 전부 다 그리는 메소드
     private def testNaiveRender(dc: DrawingContext, scroll: Point, screenBound: Rectangle): Unit = {
-        root.flatFigureStream.lines foreach { line =>
-            val deferreds = line.seq collect { case FigurePush(deferred: Deferred) => deferred }
-            deferreds foreach { d =>
-                d.figureExtra.estimateLayout(dc, d.figureExtra.estimatedCoord.anchor,
-                    RenderingPoint(d.figureExtra.estimatedCoord.position, 0), d.deferredExtra.indent)
-                println(d)
+        def traverse(figure: Figure, p: RenderingPoint, indent: Int): RenderingPoint = {
+            figure match {
+                case newLine: NewLine =>
+                    RenderingPoint(
+                        dc.indentedLeft(dc, indent),
+                        p.y + newLine.figureExtra.leadingLine.lineLabels.lineHeight
+                    )
+                case ColumnSep() =>
+                    ???
+                case label: Label =>
+                    drawLabel(dc, p, scroll, label)
+                    p.proceed(label)
+                case Chunk(children) =>
+                    children.foldLeft(p) { (p2, figure) =>
+                        traverse(figure, p2, indent)
+                    }
+                case Container(children, _) =>
+                    children.foldLeft(p) { (p2, figure) =>
+                        traverse(figure, p2, indent)
+                    }
+                case indented @ Indented(content) =>
+                    val p1 = RenderingPoint(
+                        dc.indentedLeft(dc, indent + 1),
+                        p.y + indented.figureExtra.leadingLine.lineLabels.lineHeight
+                    )
+                    // TODO 마지막에 NewLine 처리를 해줘야하는데??
+                    val p2 = traverse(content, p1, indent + 1)
+                    p2
+                case deferred: Deferred =>
+                    traverse(needDeferredContent(dc, deferred), p, indent)
+                case Actionable(content) =>
+                    traverse(content, p, indent)
+                case transformable: Transformable =>
+                    traverse(transformable.content, p, indent)
             }
-            line.labels foreach { label =>
-                drawLabel(dc, scroll, label)
-            }
         }
-    }
-
-    private def needDeferredContent(dc: DrawingContext, deferred: Deferred): Figure = {
-        val content = deferred.content
-        val extra = deferred.deferredExtra
-
-        // deferred의 content가 Container이면 .containerExtra.prepareAnchors를 호출한다
-        content match {
-            case container: Container =>
-                container.containerExtra.prepareAnchors(extra.anchor, dc)
-            case _ => // nothing to do
-        }
-
-        // content를 배치한다
-        content.figureExtra.estimateLayout(dc, extra.anchor, extra.renderingPoint, extra.indent)
-
-        if (deferred.figureExtra.estimatedDimension != content.figureExtra.estimatedDimension) {
-            // TODO 예상했던 content의 사이즈와 실제 사이즈가 다른 경우
-            // TODO deferred가 붙어있는 anchor에게 deferred의 사이즈가 바뀌었음을 알려줘서 anchor들을 재조정한다
-        }
-        content
+        traverse(root, RenderingPoint(0, 0), 0)
     }
 
     // 화면에 보이는 내용만 그리는 메소드
@@ -112,30 +116,67 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
         val visibleX = visibleArea.left to visibleArea.right
         val visibleY = visibleArea.top to visibleArea.bottom
         var traverseCount = 0
-        def traverse(figure: Figure): Unit = {
+        def traverse(figure: Figure, p: RenderingPoint, indent: Int): RenderingPoint = {
             traverseCount += 1
-            val position = figure.figureExtra.estimatedCoord.position
-            val occupyingY = position.y to (position.y + figure.figureExtra.estimatedDimension.totalHeight)
+            val occupyingY = p.y to (p.y + figure.figureExtra.totalHeight)
             if (rangeOverlap(visibleY, occupyingY)) {
                 figure match {
+                    case newLine: NewLine =>
+                        RenderingPoint(
+                            dc.indentedLeft(dc, indent),
+                            p.y + newLine.figureExtra.leadingLine.lineLabels.lineHeight
+                        )
+                    case ColumnSep() =>
+                        ???
                     case label: Label =>
-                        // TODO 가로축으로도 거르기
-                        drawLabel(dc, scroll, label)
+                        // 가로축으로도 거르기
+                        val occupyingX = p.x to (p.x + figure.figureExtra.dimension.leading.width)
+                        if (rangeOverlap(visibleX, occupyingX)) {
+                            drawLabel(dc, p, scroll, label)
+                        }
+                        p.proceed(label)
+                    case Chunk(children) =>
+                        children.foldLeft(p) { (p2, figure) =>
+                            traverse(figure, p2, indent)
+                        }
                     case Container(children, _) =>
-                        children foreach traverse
-                    case actionable: Actionable =>
-                        traverse(actionable.content)
+                        children.foldLeft(p) { (p2, figure) =>
+                            traverse(figure, p2, indent)
+                        }
+                    case indented @ Indented(content) =>
+                        val p1 = RenderingPoint(
+                            dc.indentedLeft(dc, indent + 1),
+                            p.y + indented.figureExtra.leadingLine.lineLabels.lineHeight
+                        )
+                        // TODO 마지막에 NewLine 처리를 해줘야하는데??
+                        val p2 = traverse(content, p1, indent + 1)
+                        p2
                     case deferred: Deferred =>
-                        traverse(needDeferredContent(dc, deferred))
-                    case indented: Indented =>
-                        traverse(indented.content)
+                        traverse(needDeferredContent(dc, deferred), p, indent)
+                    case Actionable(content) =>
+                        traverse(content, p, indent)
                     case transformable: Transformable =>
-                        traverse(transformable.content)
+                        traverse(transformable.content, p, indent)
                 }
+            } else {
+                p.proceed(figure)
             }
         }
-        traverse(root)
-        println(s"Traverse:$traverseCount")
+        traverse(root, RenderingPoint(0, 0), 0)
+        println(s"TraverseCount:$traverseCount")
+    }
+
+    private def needDeferredContent(dc: DrawingContext, deferred: Deferred): Figure = {
+        val content = deferred.content
+
+        // TODO lineLabels가 쪼개지는 경우 고려해서 처리
+        content.figureExtra.updateDimension(dc, deferred.figureExtra.leadingLine.lineLabels)
+
+        if (deferred.figureExtra.dimension != content.figureExtra.dimension) {
+            // TODO 예상했던 content의 사이즈와 실제 사이즈가 다른 경우
+            // figureParent들에 알려서 전체 크기를 조정한다
+        }
+        content
     }
 
     // layers 순서대로 + layers에서 처리되지 않은 나머지 figure들을 담은 RenderPlan이 반환된다
@@ -143,40 +184,40 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
         val visibleArea = screenBound + scroll
         val visibleY = visibleArea.top to visibleArea.bottom
         def traverse(figure: Figure, top: Long, lineBottom: Long, left: Long, indent: Int, interests: Map[Layer, Nothing]) = {
-            val position = figure.figureExtra.estimatedCoord.position
-            val occupyingY = position.y to (position.y + figure.figureExtra.estimatedDimension.totalHeight)
-            if (rangeOverlap(visibleY, occupyingY)) {
-                figure match {
-                    case container: Container =>
-                        container.flatFigureStream.lines takeWhile { line =>
-                            val lineHeight = line.labels.foldLeft(0L) { (m, i) =>
-                                Math.max(m, i.figureExtra.estimatedDimension.leading.height)
-                            }
-                            // line.seq에서 Container가 아닌 FigurePush, FigurePop 처리해서 interests 변경하고
-                            // Label들에 대해서 traverse
-                            ???
-                        }
-                }
-                // 이 figure가 화면에 보여질 y와 겹치는 영역에 있어서 화면에 표시될 가능성이 있음
-                /*
-                    figure match {
-                        case label: Label =>
-                            val visibleX = visibleArea.left to visibleArea.right
-                            if ((visibleX contains position.x) || (visibleX contains position.x + label.labelExtra.measuredWidth)) {
-                                // 이 label은 보이는 영역 안에 있어서 보임
-                                // TODO RenderPlan에 추가함
-                            }
-                        case Actionable(content) => // content 에 대해서 처리
-                        case container: Container =>
-                            container.flatFigureStream
-                        case deferred: Deferred =>
-                            val content = needDeferredContent(deferred)
-                        // content 에 대해서 처리
-                        case Indented(content) => // content에 대해서 처리
-                        case transformable: Transformable => // transformable.content 에 대해서 처리
-                    }
-                */
-            }
+            //            val position = figure.figureExtra.estimatedCoord.position
+            //            val occupyingY = position.y to (position.y + figure.figureExtra.estimatedDimension.totalHeight)
+            //            if (rangeOverlap(visibleY, occupyingY)) {
+            //                figure match {
+            //                    case container: Container =>
+            //                        container.flatFigureStream.lines takeWhile { line =>
+            //                            val lineHeight = line.labels.foldLeft(0L) { (m, i) =>
+            //                                Math.max(m, i.figureExtra.estimatedDimension.leading.height)
+            //                            }
+            //                            // line.seq에서 Container가 아닌 FigurePush, FigurePop 처리해서 interests 변경하고
+            //                            // Label들에 대해서 traverse
+            //                            ???
+            //                        }
+            //                }
+            //                // 이 figure가 화면에 보여질 y와 겹치는 영역에 있어서 화면에 표시될 가능성이 있음
+            //                /*
+            //                    figure match {
+            //                        case label: Label =>
+            //                            val visibleX = visibleArea.left to visibleArea.right
+            //                            if ((visibleX contains position.x) || (visibleX contains position.x + label.labelExtra.measuredWidth)) {
+            //                                // 이 label은 보이는 영역 안에 있어서 보임
+            //                                // TODO RenderPlan에 추가함
+            //                            }
+            //                        case Actionable(content) => // content 에 대해서 처리
+            //                        case container: Container =>
+            //                            container.flatFigureStream
+            //                        case deferred: Deferred =>
+            //                            val content = needDeferredContent(deferred)
+            //                        // content 에 대해서 처리
+            //                        case Indented(content) => // content에 대해서 처리
+            //                        case transformable: Transformable => // transformable.content 에 대해서 처리
+            //                    }
+            //                */
+            //            }
             figure.flatFigureStream.lines
             // scroll을 빼서 그게 bounds 안에 있으면 그리고 아니면 끝
             // TODO
@@ -188,6 +229,21 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
 
     def executeRenderPlan(renderPlan: RenderPlan): Unit = {
         ???
+    }
+
+    private def boundScroll(bounds: Rectangle): Unit = {
+        val wholeHeight = root.figureExtra.totalHeight
+        println(s"wholeHeight:$wholeHeight $scrollTop ${wholeHeight - bounds.height}")
+        if (scrollLeft < 0) {
+            scrollLeft = 0
+        }
+        // TODO scrollLeft max값 설정
+        if (scrollTop < 0) {
+            scrollTop = 0
+        }
+        if (scrollTop + bounds.height > wholeHeight) {
+            scrollTop = Math.max(0, wholeHeight - bounds.height)
+        }
     }
 
     // paintControl이 호출되는 경우는
@@ -203,9 +259,8 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
         dc.gc.setFont(drawingConfig.defaultFont)
 
         if (firstRendering) {
-            root.figureExtra.estimatedCoord = new AnchorCoord(AnchorRoot, Point(0, 0))
-            root.containerExtra.prepareAnchors(AnchorRoot, dc)
-            root.figureExtra.estimateLayout(dc, AnchorRoot, RenderingPoint(Point.zero, 0), 0)
+            root.figureExtra.updateParent(RootFigure)
+            root.figureExtra.updateDimension(dc, new LineLabels)
             firstRendering = false
         } else {
             // TODO figure가 업데이트되면서 새로 생긴 부분이 있으면 figureExtra.coord가 반드시 셋팅되도록 해야 함
@@ -217,25 +272,16 @@ class FigureTreeView(parent: Composite, style: Int, root: Container, columns: Se
         }
         updated = List()
 
-        val bounds = getBounds
-        val wholeHeight = root.figureExtra.estimatedDimension.totalHeight
-        if (scrollLeft < 0) {
-            scrollLeft = 0
-        }
-        // TODO scrollLeft max값 설정
-        if (scrollTop < 0) {
-            scrollTop = 0
-        }
-        if (scrollTop + bounds.height > wholeHeight) {
-            scrollTop = Math.max(0, wholeHeight - bounds.height)
-        }
+        val bounds = Rectangle(getBounds)
+        val visibleBound = bounds.shrink(100, 150, 150, 150)
+
+        // boundScroll(bounds)
 
         /*
         val plan = planRender(dc, Point(scrollLeft, scrollTop), Rectangle(bounds), Seq())
         plan foreach executeRenderPlan
         */
 
-        val visibleBound = Rectangle(bounds).shrink(100, 150, 150, 150)
         dc.gc.setForeground(ColorConstants.red)
         dc.gc.drawRectangle(visibleBound.left.toInt, visibleBound.top.toInt, visibleBound.width.toInt, visibleBound.height.toInt)
         dc.gc.setForeground(ColorConstants.black)

@@ -40,4 +40,7 @@ case class DrawingContext(gc: GC, conf: DrawingConfig) {
             Dimension(dim.x, dim.y)
         }
     }
+
+    def indentedLeft(dc: DrawingContext, indentDepth: Int): Long =
+        conf.indentWidth.widthInPixel(dc) * indentDepth
 }

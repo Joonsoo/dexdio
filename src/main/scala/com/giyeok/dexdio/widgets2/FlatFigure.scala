@@ -54,7 +54,7 @@ class FlatFigureLine(val seq: Seq[FlatFigure]) extends FlatFigureSeq {
     }
     def estimatedLabelHeight: Long = {
         val labels = this.labels
-        if (labels.isEmpty) 0 else (labels map { _.figureExtra.estimatedDimension.totalHeight }).max
+        if (labels.isEmpty) 0 else (labels map { _.figureExtra.totalHeight }).max
     }
 }
 
@@ -63,7 +63,7 @@ class FlatFigureStream(val seq: Stream[FlatFigure]) extends FlatFigureSeq {
 
     def nextLine: (FlatFigureLine, FlatFigureStream) = {
         val (line, rest) = seq span {
-            case FigureLabel(_: NewLine) => false
+            case FigureLabel(NewLine()) => false
             case _ => true
         }
         if (rest.nonEmpty) {
@@ -97,6 +97,8 @@ object FlatFigureStream {
                         (FigurePush(actionable) #:: traverse(content)) append Stream(FigurePop(actionable))
                     case transformable: Transformable =>
                         (FigurePush(transformable) #:: traverse(transformable.content)) append Stream(FigurePop(transformable))
+                    case _: Chunk =>
+                        ??? // should not happen
                 }
             new FlatFigureStream(traverse(figure))
         }
