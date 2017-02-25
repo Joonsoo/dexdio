@@ -3,7 +3,9 @@ package com.giyeok.dexdio.widgets2
 import java.util.concurrent.atomic.AtomicLong
 import org.eclipse.swt.graphics.Image
 
+// TODO Figure에서 줄 수 정보 얻어낼 수 있어야 함
 // Label은 반드시 직사각형의 영역을 차지한다
+// TODO figureExtra 구조에 대해서 더 고민하기 -> 현재 구조로는 Figure 객체를 여러 view에서 재사용이 불가능
 
 trait Tag
 
@@ -14,8 +16,6 @@ object AbstractFigure {
     private val counter = new AtomicLong()
     private def newId(): Long = counter.incrementAndGet()
 }
-
-// TODO figureExtra 구조 해체해서 View에 넣기 -> 현재 구조로는 Figure class 재사용이 불가능
 
 case object RootFigure extends AbstractFigure
 sealed trait Figure extends AbstractFigure {

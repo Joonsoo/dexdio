@@ -149,8 +149,8 @@ private class FigureExtra(figure: Figure) {
             case Chunk(children) =>
                 updateMultiFigures(children, lineLabels)
 
-            case Container(children, _) =>
-                updateMultiFigures(children, lineLabels)
+            case container: Container =>
+                updateMultiFigures(container.containerExtra.chunkChildren, lineLabels)
 
             case Indented(content) =>
                 this.leadingLine = lineLabels.lastPointer

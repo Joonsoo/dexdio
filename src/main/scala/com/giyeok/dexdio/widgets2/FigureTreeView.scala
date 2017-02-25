@@ -97,8 +97,8 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
                         children.foldLeft(p) { (p2, figure) =>
                             traverse(figure, p2, indent)
                         }
-                    case Container(children, _) =>
-                        children.foldLeft(p) { (p2, figure) =>
+                    case container: Container =>
+                        container.containerExtra.chunkChildren.foldLeft(p) { (p2, figure) =>
                             traverse(figure, p2, indent)
                         }
                     case indented @ Indented(content) =>
