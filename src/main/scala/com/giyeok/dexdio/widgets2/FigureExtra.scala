@@ -154,11 +154,10 @@ private class FigureExtra(figure: Figure) {
 
             case Indented(content) =>
                 this.leadingLine = lineLabels.lastPointer
-                content.figureExtra.updateDimension(dc, new LineLabels)
+                val trailingLineLabels = content.figureExtra.updateDimension(dc, new LineLabels)
                 this.dimension = FigureDimension(Dimension.zero, Some(content.figureExtra.dimension.totalHeight, Dimension.zero))
-                val newLineLabels = new LineLabels
-                this.trailingLine = Some(newLineLabels.lastPointer)
-                newLineLabels
+                this.trailingLine = Some(trailingLineLabels.lastPointer)
+                new LineLabels
 
             case deferred: Deferred =>
                 this.leadingLine = lineLabels.lastPointer

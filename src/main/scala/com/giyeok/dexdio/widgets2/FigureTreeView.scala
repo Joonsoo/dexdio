@@ -69,48 +69,6 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
         }
     }
 
-    // 무식하게 전부 다 그리는 메소드
-    private def testNaiveRender(dc: DrawingContext, scroll: Point, screenBound: Rectangle): Unit = {
-        def traverse(figure: Figure, p: RenderingPoint, indent: Int): RenderingPoint = {
-            figure match {
-                case newLine: NewLine =>
-                    RenderingPoint(
-                        dc.indentedLeft(dc, indent),
-                        p.y + newLine.figureExtra.leadingLine.lineLabels.lineHeight
-                    )
-                case ColumnSep() =>
-                    ???
-                case label: Label =>
-                    drawLabel(dc, p, scroll, label)
-                    p.proceed(label)
-                case Chunk(children) =>
-                    children.foldLeft(p) { (p2, figure) =>
-                        traverse(figure, p2, indent)
-                    }
-                case Container(children, _) =>
-                    children.foldLeft(p) { (p2, figure) =>
-                        traverse(figure, p2, indent)
-                    }
-                case indented @ Indented(content) =>
-                    val p1 = RenderingPoint(
-                        dc.indentedLeft(dc, indent + 1),
-                        p.y + indented.figureExtra.leadingLine.lineLabels.lineHeight
-                    )
-                    // TODO 마지막에 NewLine 처리를 해줘야하는데??
-                    val p2 = traverse(content, p1, indent + 1)
-                    p2
-                case deferred: Deferred =>
-                    traverse(needDeferredContent(dc, deferred), p, indent)
-                case Actionable(content) =>
-                    traverse(content, p, indent)
-                case transformable: Transformable =>
-                    traverse(transformable.content, p, indent)
-            }
-        }
-        traverse(root, RenderingPoint(0, 0), 0)
-    }
-
-    // 화면에 보이는 내용만 그리는 메소드
     private def testRender(dc: DrawingContext, scroll: Point, screenBound: Rectangle): Unit = {
         val visibleArea = screenBound + scroll
         val visibleX = visibleArea.left to visibleArea.right
@@ -148,9 +106,11 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
                             dc.indentedLeft(dc, indent + 1),
                             p.y + indented.figureExtra.leadingLine.lineLabels.lineHeight
                         )
-                        // TODO 마지막에 NewLine 처리를 해줘야하는데??
                         val p2 = traverse(content, p1, indent + 1)
-                        p2
+                        RenderingPoint(
+                            dc.indentedLeft(dc, indent),
+                            p2.y + indented.figureExtra.trailingLine.get.lineLabels.lineHeight
+                        )
                     case deferred: Deferred =>
                         traverse(needDeferredContent(dc, deferred), p, indent)
                     case Actionable(content) =>
@@ -163,7 +123,7 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
             }
         }
         traverse(root, RenderingPoint(0, 0), 0)
-        println(s"TraverseCount:$traverseCount")
+        // println(s"TraverseCount:$traverseCount")
     }
 
     private def needDeferredContent(dc: DrawingContext, deferred: Deferred): Figure = {
@@ -233,7 +193,7 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
 
     private def boundScroll(bounds: Rectangle): Unit = {
         val wholeHeight = root.figureExtra.totalHeight
-        println(s"wholeHeight:$wholeHeight $scrollTop ${wholeHeight - bounds.height}")
+        // println(s"wholeHeight:$wholeHeight $scrollTop ${wholeHeight - bounds.height}")
         if (scrollLeft < 0) {
             scrollLeft = 0
         }
@@ -253,7 +213,7 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
     // 2의 경우엔 변경된 내용이 화면 밖에 있으면 다시 그릴 필요가 없고, 화면 안에 있으면 변경된 영역만 다시 그리면 된다
     // 일단은 전부 다시 그리자
     def paintControl(e: PaintEvent): Unit = {
-        println(s"paintControl ${System.currentTimeMillis()}")
+        // println(s"paintControl ${System.currentTimeMillis()}")
         val dc = DrawingContext(e.gc, drawingConfig)
 
         dc.gc.setFont(drawingConfig.defaultFont)
@@ -303,7 +263,7 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
     addMouseWheelListener(this)
 
     def keyPressed(e: KeyEvent): Unit = {
-        println(e.keyCode, SWT.UP, SWT.DOWN, SWT.LEFT, SWT.RIGHT)
+        // println(e.keyCode, SWT.UP, SWT.DOWN, SWT.LEFT, SWT.RIGHT)
         e.keyCode match {
             case SWT.ARROW_UP => scrollTop -= 5
             case SWT.ARROW_DOWN => scrollTop += 5
@@ -317,7 +277,7 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
     def keyReleased(e: KeyEvent): Unit = {}
 
     def mouseScrolled(e: MouseEvent): Unit = {
-        println(e)
+        // println(e)
         scrollTop -= e.count * 5
         redraw()
     }
