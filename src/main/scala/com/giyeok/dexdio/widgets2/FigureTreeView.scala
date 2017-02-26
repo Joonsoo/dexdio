@@ -130,12 +130,14 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
     private def needDeferredContent(dc: DrawingContext, deferred: Deferred): Figure = {
         val content = deferred.content
 
+        content.figureExtra.updateParent(Some(deferred))
         // TODO lineLabels가 쪼개지는 경우 고려해서 처리
         content.figureExtra.updateDimension(dc, deferred.figureExtra.leadingLine.lineLabels)
 
         if (deferred.figureExtra.dimension != content.figureExtra.dimension) {
             // TODO 예상했던 content의 사이즈와 실제 사이즈가 다른 경우
             // figureParent들에 알려서 전체 크기를 조정한다
+            deferred.figureExtra.dimensionUpdated(content, content.figureExtra.dimension)
         }
         content
     }
@@ -220,7 +222,7 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
         dc.gc.setFont(drawingConfig.defaultFont)
 
         if (firstRendering) {
-            root.figureExtra.updateParent(RootFigure)
+            root.figureExtra.updateParent(None)
             root.figureExtra.updateDimension(dc, new LineLabels)
             firstRendering = false
         } else {
@@ -233,8 +235,8 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
         }
         updated = List()
 
-        val bounds = Rectangle(getBounds)
-        val visibleBound = bounds.shrink(100, 150, 150, 150)
+        val bounds = Rectangle(getBounds).shrink(0, 0, 0, 20)
+        val visibleBound = bounds //.shrink(left = 100, top = 150, right = 150, bottom = 150)
 
         // boundScroll(bounds)
 
@@ -248,6 +250,8 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
         dc.gc.setForeground(ColorConstants.black)
 
         testRender(dc, Point(scrollLeft, scrollTop), visibleBound)
+
+        // println(s"${root.figureExtra.dimension} ${root.figureExtra.leadingLine.lineLabels.lineHeight} ${root.figureExtra.trailingLine.get.lineLabels.lineHeight}")
 
         getCaret.setBounds(20, 20, 2, 15)
     }

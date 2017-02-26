@@ -9,15 +9,15 @@ class LineLabels {
     def add(label: Label): LineLabelsPointer = {
         labels +:= label
         lineHeightCache = None
-        LineLabelsPointer(this, 0)
+        LineLabelsPointer(this, labels.length)
     }
     def lastPointer: LineLabelsPointer = {
         lineHeightCache = None
-        LineLabelsPointer(this, 0)
+        LineLabelsPointer(this, labels.length)
     }
 
     def splitAt(idx: Int): LineLabels = {
-        // TODO 현재 라인에서 idx 이후 부분은 제거하고 새 LineLabels에 편입시켜준다
+        // TODO 현재 라인에서 idx 이후 부분은 제거하고 새 LineLabels로 옮긴다
         lineHeightCache = None
         ???
     }
@@ -41,7 +41,7 @@ case class LineLabelsPointer(lineLabels: LineLabels, idx: Int) {
 }
 
 private class FigureExtra(figure: Figure) {
-    var parent: AbstractFigure = _
+    var parent: Option[Figure] = _
     var dimension: FigureDimension = _
     var leadingLine: LineLabelsPointer = _
     var trailingLine: Option[LineLabelsPointer] = _
@@ -53,28 +53,48 @@ private class FigureExtra(figure: Figure) {
         }
     }
 
-    def updateParent(parent: AbstractFigure): Unit = {
+    def updateParent(parent: Option[Figure]): Unit = {
         this.parent = parent
         figure match {
             case _: Label => // nothing to do
             case chunk @ Chunk(children) =>
-                children foreach { _.figureExtra.updateParent(chunk) }
+                children foreach { _.figureExtra.updateParent(Some(chunk)) }
             case container: Container =>
-                container.containerExtra.chunkChildren foreach { _.figureExtra.updateParent(container) }
+                container.containerExtra.chunkChildren foreach { _.figureExtra.updateParent(Some(container)) }
             case row @ Row(cells, _) =>
-                cells foreach { _.figureExtra.updateParent(row) }
+                cells foreach { _.figureExtra.updateParent(Some(row)) }
             case cell @ Cell(content, _, _, _) =>
-                content.figureExtra.updateParent(cell)
+                content.figureExtra.updateParent(Some(cell))
             case indented @ Indented(content) =>
-                content.figureExtra.updateParent(indented)
+                content.figureExtra.updateParent(Some(indented))
             case deferred: Deferred =>
                 if (deferred.deferredExtra.isContentSet) {
-                    deferred.content.figureExtra.updateParent(deferred)
+                    deferred.content.figureExtra.updateParent(Some(deferred))
                 }
             case actionable @ Actionable(content) =>
-                content.figureExtra.updateParent(actionable)
+                content.figureExtra.updateParent(Some(actionable))
             case transformable: Transformable =>
-                transformable.content.figureExtra.updateParent(transformable)
+                transformable.content.figureExtra.updateParent(Some(transformable))
+        }
+    }
+
+    private def multiFigureDimension(children: Seq[Figure]): FigureDimension = {
+        val childrenDims = children map { _.figureExtra.dimension }
+        val (leading, rest) = childrenDims span { _.rest.isEmpty }
+        val leadingDimension = leading.foldLeft(Dimension.zero) { (m, i) => m.addRight(i.leading) }
+        if (rest.isEmpty) {
+            FigureDimension(leadingDimension, None)
+        } else {
+            val (exclusiveHeight, trailingDimension) = rest.tail.foldLeft(rest.head.rest.get) { (cc, child) =>
+                val (height, trailing) = cc
+                child.rest match {
+                    case Some((restHeight, restTrailing)) =>
+                        (height + Math.max(trailing.height, child.leading.height) + restHeight, restTrailing)
+                    case None =>
+                        (height, trailing addRight child.leading)
+                }
+            }
+            FigureDimension(leadingDimension, Some((exclusiveHeight, trailingDimension)))
         }
     }
 
@@ -91,25 +111,7 @@ private class FigureExtra(figure: Figure) {
                 val finalLineLabels = children.foldLeft(lineLabels) { (m, figure) =>
                     figure.figureExtra.updateDimension(dc, m)
                 }
-                val totalDimension = {
-                    val childrenDims = children map { _.figureExtra.dimension }
-                    val (leading, rest) = childrenDims span { _.rest.isEmpty }
-                    val leadingDimension = leading.foldLeft(Dimension.zero) { (m, i) => m.addRight(i.leading) }
-                    if (rest.isEmpty) {
-                        FigureDimension(leadingDimension, None)
-                    } else {
-                        val (exclusiveHeight, trailingDimension) = rest.tail.foldLeft(rest.head.rest.get) { (cc, child) =>
-                            val (height, trailing) = cc
-                            child.rest match {
-                                case Some((restHeight, restTrailing)) =>
-                                    (height + Math.max(trailing.height, child.leading.height) + restHeight, restTrailing)
-                                case None =>
-                                    (height, trailing addRight child.leading)
-                            }
-                        }
-                        FigureDimension(leadingDimension, Some((exclusiveHeight, trailingDimension)))
-                    }
-                }
+                val totalDimension = multiFigureDimension(children)
                 this.dimension = totalDimension
                 if (totalDimension.rest.isEmpty) {
                     this.trailingLine = None
@@ -192,6 +194,48 @@ private class FigureExtra(figure: Figure) {
             case transformable: Transformable =>
                 // transformable.content.figureExtra.estimateLayout()
                 updateContentDimension(transformable.content, lineLabels)
+        }
+    }
+
+    // 자식중에 크기가 변한게 있어서 figure의 크기가 newDimension으로 바뀐 경우 - parent들에 알려야 함
+    def dimensionUpdated(child: Figure, newChildDimension: FigureDimension): Unit = {
+        // TODO leadingLine, trailingLine 처리
+        def simple(): Unit = {
+            this.dimension = newChildDimension
+            this.parent foreach { _.figureExtra.dimensionUpdated(figure, newChildDimension) }
+        }
+        figure match {
+            case _: Label => ??? // should not happen
+            case chunk: Chunk =>
+                assert(chunk.children exists { _ eq child })
+                val newDimension = multiFigureDimension(chunk.children)
+                this.dimension = newDimension
+                this.parent foreach { _.figureExtra.dimensionUpdated(figure, newDimension) }
+            case container: Container =>
+                assert(container.containerExtra.chunkChildren exists { _ eq child })
+                val newDimension = multiFigureDimension(container.containerExtra.chunkChildren)
+                this.dimension = newDimension
+                this.parent foreach { _.figureExtra.dimensionUpdated(figure, newDimension) }
+            case row: Row =>
+                ???
+            case Cell(content, _, _, _) =>
+                assert(content eq child)
+                simple()
+            case Indented(content) =>
+                assert(content eq child)
+                // TODO width 처리가 추가되면 변경되어야 함
+                simple()
+            case deferred: Deferred =>
+                assert(deferred.content eq child)
+                simple()
+            case Actionable(content) =>
+                assert(content eq child)
+                simple()
+            case transformable: Transformable =>
+                // 보여지고 있는 content가 아니면 무시함(그런데 이런 상황이 생길 수 있을까?)
+                if (transformable.content == child) {
+                    simple()
+                }
         }
     }
 

@@ -18,7 +18,7 @@ libraryDependencies += {
         case (os, arch) => sys.error("Cannot obtain lib for OS '" + os + "' and architecture '" + arch + "'")
     }
     val artifact = "org.eclipse.swt." + os
-    "org.eclipse.swt" % artifact % "4.5"
+    "org.eclipse.swt" % artifact % "4.6.1"
 }
 
 libraryDependencies += "swt" % "jface" % "3.0.1"

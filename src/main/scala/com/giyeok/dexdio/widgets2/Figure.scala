@@ -9,20 +9,18 @@ import org.eclipse.swt.graphics.Image
 
 trait Tag
 
-sealed trait AbstractFigure {
-    val id: Long = AbstractFigure.newId()
-}
-object AbstractFigure {
-    private val counter = new AtomicLong()
-    private def newId(): Long = counter.incrementAndGet()
-}
+sealed trait Figure {
+    val id: Long = Figure.newId()
 
-case object RootFigure extends AbstractFigure
-sealed trait Figure extends AbstractFigure {
     val tags: Set[Tag]
 
     private[widgets2] var figureExtra = new FigureExtra(this)
 }
+object Figure {
+    private val counter = new AtomicLong()
+    private def newId(): Long = counter.incrementAndGet()
+}
+
 sealed trait FigureNoTags extends Figure {
     val tags = Set()
 }

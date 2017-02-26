@@ -67,7 +67,7 @@ object FigureTreeViewTest {
                     Container(
                         Seq(
                             TextLabel("{", TextNoDecoration, Set(Punctuation, OpeningBracket(2))),
-                            Indented(
+                            Deferred(Indented(
                                 Container(Seq(
                                     Container(
                                         Seq(
@@ -106,7 +106,7 @@ object FigureTreeViewTest {
                                         Set(JavaStatement)
                                     )
                                 ), Set(MethodBodyContent, MethodTag(s"$className:$methodName")))
-                            ),
+                            )),
                             TextLabel("}", TextNoDecoration, Set(Punctuation, ClosingBracket(2)))
                         ),
                         Set(MethodBody, MethodTag(s"$className:$methodName"))
@@ -132,7 +132,7 @@ object FigureTreeViewTest {
 
         val figure = {
             val methodFigures: Seq[Figure] = {
-                def methodAt(idx: Int) = methodFigure("aaa/bbb/ccc", s"method$idx")
+                def methodAt(idx: Int) = Deferred(methodFigure("aaa/bbb/ccc", s"method$idx"))
                 methodAt(0) +: ((0 until 1) flatMap { i => Seq(NewLine(), NewLine(), methodAt(i)) })
             }
             Container(methodFigures, Set())
@@ -145,7 +145,7 @@ object FigureTreeViewTest {
 
         // new FigureTreeView(shell, SWT.NONE, TextLabel("hello", TextNoDecoration, Set()), Seq(), DrawingConfig(15, JFaceResources.getFont(JFaceResources.TEXT_FONT)))
         val systemFont = JFaceResources.getFont(JFaceResources.TEXT_FONT)
-        val myFont = new Font(null, "Menlo", 30, SWT.ITALIC | SWT.BOLD)
+        val myFont = new Font(null, "Menlo", 30, SWT.NONE)
         new FigureTreeView(shell, SWT.NONE, figure, Seq(), DrawingConfig(SpacingLabel(pixelWidth = 0, spaceCount = 2), myFont))
 
         shell.open()
