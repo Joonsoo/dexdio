@@ -61,6 +61,10 @@ private class FigureExtra(figure: Figure) {
                 children foreach { _.figureExtra.updateParent(chunk) }
             case container: Container =>
                 container.containerExtra.chunkChildren foreach { _.figureExtra.updateParent(container) }
+            case row @ Row(cells, _) =>
+                cells foreach { _.figureExtra.updateParent(row) }
+            case cell @ Cell(content, _, _, _) =>
+                content.figureExtra.updateParent(cell)
             case indented @ Indented(content) =>
                 content.figureExtra.updateParent(indented)
             case deferred: Deferred =>
@@ -151,6 +155,13 @@ private class FigureExtra(figure: Figure) {
 
             case container: Container =>
                 updateMultiFigures(container.containerExtra.chunkChildren, lineLabels)
+
+            case Row(cells, _) =>
+                this.leadingLine = lineLabels.lastPointer
+                ???
+
+            case Cell(content, _, _, _) =>
+                updateContentDimension(content, lineLabels)
 
             case Indented(content) =>
                 this.leadingLine = lineLabels.lastPointer

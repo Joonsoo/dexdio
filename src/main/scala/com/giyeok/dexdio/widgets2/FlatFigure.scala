@@ -36,11 +36,14 @@ trait FlatFigureSeq {
                 case FigureLabel(SpacingLabel(pixelWidth, spaceCount)) =>
                     ((" " * (spaceCount + (pixelWidth / 12))) +: result, indent)
                 case FigureLabel(NewLine()) => (s"\n$indent" +: result, indent)
-                case FigureLabel(ColumnSep()) => ("\t" +: result, indent)
                 case FigurePush(Indented(_)) =>
                     val newIndent = indent + (" " * 2)
                     (s"\n$newIndent" +: result, newIndent)
                 case FigurePop(Indented(_)) => ("\n" +: result, indent.substring(Math.min(indent.length, 2)))
+                case FigurePush(Row(_, _)) =>
+                    ???
+                case FigurePop(Row(_, _)) =>
+                    ???
                 case _ => cc
             }
         }
@@ -91,6 +94,10 @@ object FlatFigureStream {
                         (FigurePush(container) #:: (children.toStream flatMap traverse)) append Stream(FigurePop(container))
                     case indented @ Indented(content) =>
                         (FigurePush(indented) #:: traverse(content)) append Stream(FigurePop(indented))
+                    case row @ Row(cells, _) =>
+                        FigurePush(row) #:: (cells.toStream flatMap traverse) append Stream(FigurePop(row))
+                    case cell @ Cell(content, _, _, _) =>
+                        (FigurePush(cell) #:: traverse(content)) append Stream(FigurePop(cell))
                     case deferred: Deferred =>
                         (FigurePush(deferred) #:: traverse(deferred.content)) append Stream(FigurePop(deferred))
                     case actionable @ Actionable(content) =>

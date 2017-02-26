@@ -64,7 +64,6 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
             case ImageLabel(image, _) =>
                 ???
             case SpacingLabel(_, _) => // nothing to do
-            case ColumnSep() => // nothing to do
             case NewLine() => // nothing to do
         }
     }
@@ -84,8 +83,6 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
                             dc.indentedLeft(dc, indent),
                             p.y + newLine.figureExtra.leadingLine.lineLabels.lineHeight
                         )
-                    case ColumnSep() =>
-                        ???
                     case label: Label =>
                         // 가로축으로도 거르기
                         val occupyingX = p.x to (p.x + figure.figureExtra.dimension.leading.width)
@@ -111,6 +108,10 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
                             dc.indentedLeft(dc, indent),
                             p2.y + indented.figureExtra.trailingLine.get.lineLabels.lineHeight
                         )
+                    case cell: Cell =>
+                        ???
+                    case row @ Row(cells, tags) =>
+                        ???
                     case deferred: Deferred =>
                         traverse(needDeferredContent(dc, deferred), p, indent)
                     case Actionable(content) =>

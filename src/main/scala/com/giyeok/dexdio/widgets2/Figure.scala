@@ -48,11 +48,6 @@ case class SpacingLabel(pixelWidth: Int, spaceCount: Int) extends Label {
     def measureDimension(dc: DrawingContext): Dimension =
         Dimension(widthInPixel(dc), dc.standardLineHeight)
 }
-// TODO ColumnRight 추가
-case class ColumnSep() extends Label with FigureNoTags {
-    def measureDimension(dc: DrawingContext): Dimension =
-        Dimension.zero
-}
 
 case class NewLine() extends Label with FigureNoTags {
     def measureDimension(dc: DrawingContext): Dimension =
@@ -65,7 +60,9 @@ case class Container(children: Seq[Figure], tags: Set[Tag]) extends Figure {
     private[widgets2] var containerExtra = new ContainerExtra(this)
 }
 
-// Indented는 자동으로 위아래 NewLine이 추가된다
+// Row와 Indented는 위아래 NewLine이 추가된다
+case class Cell(content: Figure, tags: Set[Tag], horizontalAlign: Int = 0, verticalAlign: Int = 0) extends Figure
+case class Row(cells: Seq[Cell], tags: Set[Tag]) extends Figure
 case class Indented(content: Figure) extends FigureNoTags
 
 trait Deferred extends FigureNoTags {
