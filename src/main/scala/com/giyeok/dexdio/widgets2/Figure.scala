@@ -52,48 +52,55 @@ case class NewLine() extends Label with FigureNoTags {
         Dimension.zero
 }
 
-private[widgets2] case class Chunk(children: Seq[Figure]) extends FigureNoTags {
-}
-case class Container(children: Seq[Figure], tags: Set[Tag]) extends Figure {
-    private[widgets2] var containerExtra = new ContainerExtra(this)
-}
+case class Container(children: Seq[Figure], tags: Set[Tag]) extends Figure
 
-// Row와 Indented는 위아래 NewLine이 추가된다
-case class Cell(content: Figure, tags: Set[Tag], horizontalAlign: Int = 0, verticalAlign: Int = 0) extends Figure
-case class Row(cells: Seq[Cell], tags: Set[Tag]) extends Figure
+// Indented는 위아래 NewLine이 추가된다
 case class Indented(content: Figure) extends FigureNoTags
 
 trait Deferred extends FigureNoTags {
     private[widgets2] var deferredExtra = new DeferredExtra(this)
 
-    def content: Figure = deferredExtra.content
+    def content(): Figure = deferredExtra.content
 
     def contentFunc: Figure
-    def estimateDimension(dc: DrawingContext): FigureDimension
+    def pixelsDimension(dc: DrawingContext): FigureDimension
+    def lines: FigureLines
 }
 object Deferred {
-    def apply(contentFunc: => Figure): Deferred = {
+    def apply(contentFunc: => Figure, figureDimension: FigureDimension, figureLines: FigureLines): Deferred = {
         val func: () => Figure = () => contentFunc
 
         new Deferred {
-            override def estimateDimension(dc: DrawingContext): FigureDimension =
-                FigureDimension(Dimension(100, 100), None)
-            override def contentFunc: Figure = {
-                println("Deferred called")
+            override def contentFunc: Figure =
                 func()
-            }
+            override def pixelsDimension(dc: DrawingContext): FigureDimension =
+                figureDimension
+            override def lines: FigureLines =
+                figureLines
         }
     }
 }
 case class Actionable(content: Figure) extends FigureNoTags
 
-case class Transformable(contents: Map[String, Figure], defaultState: String) extends FigureNoTags {
+class Transformable(contents: Map[String, Figure], defaultState: String) extends FigureNoTags {
     private var currentState: String = defaultState
 
     def state: String = currentState
-    def state_(newState: String): Unit = {
+    def state_=(newState: String): Unit = {
         currentState = newState
     }
 
     def content: Figure = contents(currentState)
+}
+case class Collapsable(override val content: Figure, defaultCollapsed: Boolean)
+        extends Transformable(
+            Map(
+                "expanded" -> content,
+                "collapsed" -> Container(Seq(), Set())
+            ),
+            if (defaultCollapsed) "collapsed" else "expanded"
+        ) {
+    def setCollapsed(collapsed: Boolean): Unit = {
+        this.state = if (collapsed) "collapsed" else "expanded"
+    }
 }

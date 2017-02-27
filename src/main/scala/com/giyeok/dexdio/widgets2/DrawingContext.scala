@@ -28,7 +28,14 @@ object DrawingContext {
 }
 
 case class DrawingContext(gc: GC, conf: DrawingConfig) {
-    lazy val indentWidth: Int = DrawingContext.indentWidth.getOrElse(conf.indentWidth.widthInPixel(this))
+    lazy val indentWidth: Long =
+        DrawingContext.indentWidth match {
+            case Some(indent) => indent
+            case None =>
+                val indent = conf.indentWidth.widthInPixel(this)
+                DrawingContext.indentWidth = Some(indent)
+                indent
+        }
 
     lazy val charSizeMap: Map[Char, Dimension] =
         DrawingContext.charSizeMap(gc, conf)

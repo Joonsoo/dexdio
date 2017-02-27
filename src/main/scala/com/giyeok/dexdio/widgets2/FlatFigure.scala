@@ -1,9 +1,10 @@
 package com.giyeok.dexdio.widgets2
 
 sealed trait FlatFigure
-case class FigureLabel(label: Label) extends FlatFigure
-case class FigurePush(figure: Figure) extends FlatFigure
-case class FigurePop(figure: Figure) extends FlatFigure
+case class FlatLabel(label: Label) extends FlatFigure
+case class FlatPush(figure: Figure) extends FlatFigure
+case class FlatPop(figure: Figure) extends FlatFigure
+case class FlatDeferred(deferred: Deferred) extends FlatFigure
 
 trait FlatFigureSeq {
     val seq: Seq[FlatFigure]
@@ -11,19 +12,22 @@ trait FlatFigureSeq {
     def print(): Unit = {
         var indent = 0
         seq foreach {
-            case FigurePush(pushed) =>
+            case FlatPush(pushed) =>
                 println(s"${"  " * indent}FigurePush(${pushed.getClass.getSimpleName})")
                 pushed match {
                     case _: Container => indent += 1
                     case _ => // nothing to do
                 }
-            case FigurePop(popped) =>
+            case FlatPop(popped) =>
                 println(s"${"  " * indent}FigurePop(${popped.getClass.getSimpleName})")
                 popped match {
                     case _: Container => indent -= 1
                     case _ => // nothing to do
                 }
-            case FigureLabel(label) => println(s"${"  " * indent}$label")
+            case FlatLabel(label) =>
+                println(s"${"  " * indent}$label")
+            case FlatDeferred(deferred) =>
+                println(s"${"  " * indent}FigureDeferred($deferred)")
         }
     }
 
@@ -31,19 +35,16 @@ trait FlatFigureSeq {
         val strings = seq.foldLeft((List[String](), "")) { (cc, fig) =>
             val (result, indent) = cc
             fig match {
-                case FigureLabel(TextLabel(text, _, _)) =>
+                case FlatLabel(TextLabel(text, _, _)) =>
                     (text +: result, indent)
-                case FigureLabel(SpacingLabel(pixelWidth, spaceCount)) =>
+                case FlatLabel(SpacingLabel(pixelWidth, spaceCount)) =>
                     ((" " * (spaceCount + (pixelWidth / 12))) +: result, indent)
-                case FigureLabel(NewLine()) => (s"\n$indent" +: result, indent)
-                case FigurePush(Indented(_)) =>
+                case FlatLabel(NewLine()) => (s"\n$indent" +: result, indent)
+                case FlatPush(Indented(_)) =>
                     val newIndent = indent + (" " * 2)
                     (s"\n$newIndent" +: result, newIndent)
-                case FigurePop(Indented(_)) => ("\n" +: result, indent.substring(Math.min(indent.length, 2)))
-                case FigurePush(Row(_, _)) =>
-                    ???
-                case FigurePop(Row(_, _)) =>
-                    ???
+                case FlatPop(Indented(_)) =>
+                    ("\n" +: result, indent.substring(Math.min(indent.length, 2)))
                 case _ => cc
             }
         }
@@ -51,63 +52,92 @@ trait FlatFigureSeq {
     }
 }
 
-class FlatFigureLine(val seq: Seq[FlatFigure]) extends FlatFigureSeq {
+class FlatFigureLine(val seq: Seq[FlatFigure], val context: List[FlatPush]) extends FlatFigureSeq {
     def labels: Seq[Label] = seq collect {
-        case FigureLabel(label) => label
-    }
-    def estimatedLabelHeight: Long = {
-        val labels = this.labels
-        if (labels.isEmpty) 0 else (labels map { _.figureExtra.totalHeight }).max
+        case FlatLabel(label) => label
     }
 }
 
-class FlatFigureStream(val seq: Stream[FlatFigure]) extends FlatFigureSeq {
+class FlatFigures(val seq: Seq[FlatFigure], val context: List[FlatPush]) extends FlatFigureSeq {
     def isEmpty: Boolean = seq.isEmpty
 
-    def nextLine: (FlatFigureLine, FlatFigureStream) = {
+    def nextLine: (FlatFigureLine, FlatFigures) = {
         val (line, rest) = seq span {
-            case FigureLabel(NewLine()) => false
+            case FlatLabel(NewLine()) => false
+            case FlatPush(_: Indented) => false
+            case FlatPop(_: Indented) => false
             case _ => true
         }
+        val newContext: List[FlatPush] = List()
         if (rest.nonEmpty) {
-            (new FlatFigureLine(line :+ rest.head), new FlatFigureStream(rest.tail))
-        } else (new FlatFigureLine(line), new FlatFigureStream(rest))
+            (new FlatFigureLine(line :+ rest.head, context), new FlatFigures(rest.tail, newContext))
+        } else (new FlatFigureLine(line, context), new FlatFigures(rest, newContext))
     }
 
-    def lines: Stream[FlatFigureLine] = {
+    def linesStream: Stream[FlatFigureLine] = {
         if (isEmpty) {
             Stream()
         } else {
             val (line, rest) = nextLine
-            line #:: rest.lines
+            line #:: rest.linesStream
+        }
+    }
+
+    def lines: Seq[FlatFigureLine] = {
+        if (isEmpty) {
+            Stream()
+        } else {
+            val (line, rest) = nextLine
+            line +: rest.lines
         }
     }
 }
 
 object FlatFigureStream {
     implicit class FigureFlattable(figure: Figure) {
-        def flatFigureStream: FlatFigureStream = {
-            def traverse(figure: Figure): Stream[FlatFigure] =
-                figure match {
-                    case label: Label => Stream(FigureLabel(label))
+        def flatFiguresStream(expandDeferred: Boolean): FlatFigures = {
+            def traverse(fig: Figure): Stream[FlatFigure] =
+                fig match {
+                    case label: Label => Stream(FlatLabel(label))
                     case container @ Container(children, _) =>
-                        (FigurePush(container) #:: (children.toStream flatMap traverse)) append Stream(FigurePop(container))
+                        (FlatPush(container) #:: (children.toStream flatMap traverse)) append Stream(FlatPop(container))
                     case indented @ Indented(content) =>
-                        (FigurePush(indented) #:: traverse(content)) append Stream(FigurePop(indented))
-                    case row @ Row(cells, _) =>
-                        FigurePush(row) #:: (cells.toStream flatMap traverse) append Stream(FigurePop(row))
-                    case cell @ Cell(content, _, _, _) =>
-                        (FigurePush(cell) #:: traverse(content)) append Stream(FigurePop(cell))
+                        (FlatPush(indented) #:: traverse(content)) append Stream(FlatPop(indented))
                     case deferred: Deferred =>
-                        (FigurePush(deferred) #:: traverse(deferred.content)) append Stream(FigurePop(deferred))
+                        if (expandDeferred) {
+                            (FlatPush(deferred) #:: traverse(deferred.content())) append Stream(FlatPop(deferred))
+                        } else {
+                            Stream(FlatPush(deferred), FlatDeferred(deferred), FlatPop(deferred))
+                        }
                     case actionable @ Actionable(content) =>
-                        (FigurePush(actionable) #:: traverse(content)) append Stream(FigurePop(actionable))
+                        (FlatPush(actionable) #:: traverse(content)) append Stream(FlatPop(actionable))
                     case transformable: Transformable =>
-                        (FigurePush(transformable) #:: traverse(transformable.content)) append Stream(FigurePop(transformable))
-                    case _: Chunk =>
-                        ??? // should not happen
+                        (FlatPush(transformable) #:: traverse(transformable.content)) append Stream(FlatPop(transformable))
                 }
-            new FlatFigureStream(traverse(figure))
+            new FlatFigures(traverse(figure), List())
+        }
+
+        def flatFigures(expandDeferred: Boolean): FlatFigures = {
+            def traverse(fig: Figure): Seq[FlatFigure] =
+                fig match {
+                    case label: Label =>
+                        Seq(FlatLabel(label))
+                    case container @ Container(children, _) =>
+                        FlatPush(container) +: (children.toStream flatMap traverse) :+ FlatPop(container)
+                    case indented @ Indented(content) =>
+                        FlatPush(indented) +: traverse(content) :+ FlatPop(indented)
+                    case deferred: Deferred =>
+                        if (expandDeferred) {
+                            FlatPush(deferred) +: traverse(deferred.content()) :+ FlatPop(deferred)
+                        } else {
+                            Seq(FlatPush(deferred), FlatDeferred(deferred), FlatPop(deferred))
+                        }
+                    case actionable @ Actionable(content) =>
+                        FlatPush(actionable) +: traverse(content) :+ FlatPop(actionable)
+                    case transformable: Transformable =>
+                        FlatPush(transformable) +: traverse(transformable.content) :+ FlatPop(transformable)
+                }
+            new FlatFigures(traverse(figure), List())
         }
     }
 }

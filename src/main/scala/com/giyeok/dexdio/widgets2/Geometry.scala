@@ -47,26 +47,31 @@ object Rectangle {
         Rectangle(Point(rect.x, rect.y), Dimension(rect.width, rect.height))
 }
 
-case class FigureDimension(leading: Dimension, rest: Option[(Long, Dimension)]) {
-    def exclusiveHeight: Option[Long] = rest map { _._1 }
-    def trailing: Option[Dimension] = rest map { _._2 }
-    def totalHeight: Long = leading.height + (rest map { r => r._1 + r._2.height }).getOrElse(0L)
+case class FigureDimension(leading: Dimension, following: Option[(Long, Dimension)]) {
+    def exclusiveHeight: Option[Long] = following map { _._1 }
+    def trailing: Option[Dimension] = following map { _._2 }
+    def totalHeight: Long = leading.height + (following map { r => r._1 + r._2.height }).getOrElse(0L)
+}
+
+case class FigureLines(leadingChars: Int, following: Option[(Int, Int)]) {
+    def exclusiveLines: Option[Int] = following map { _._1 }
+    def trailingChars: Option[Int] = following map { _._2 }
 }
 
 case class RenderingPoint(x: Long, y: Long) {
-    def proceed(dimension: FigureDimension, leadingLine: LineLabels): RenderingPoint =
-        dimension.rest match {
-            case Some(rest) =>
-                RenderingPoint(
-                    rest._2.width, y + leadingLine.lineHeight + rest._1
-                )
-            case None =>
-                RenderingPoint(
-                    x + dimension.leading.width, y
-                )
-        }
-    def proceed(figure: Figure): RenderingPoint = {
-        val extra = figure.figureExtra
-        proceed(extra.dimension, extra.leadingLine.lineLabels)
-    }
+    //    def proceed(dimension: FigureDimension, leadingLine: LineLabels): RenderingPoint =
+    //        dimension.following match {
+    //            case Some(rest) =>
+    //                RenderingPoint(
+    //                    rest._2.width, y + leadingLine.lineHeight + rest._1
+    //                )
+    //            case None =>
+    //                RenderingPoint(
+    //                    x + dimension.leading.width, y
+    //                )
+    //        }
+    //    def proceed(figure: Figure): RenderingPoint = {
+    //        val extra = figure.figureExtra
+    //        proceed(extra.dimension, extra.leadingLine.lineLabels)
+    //    }
 }
