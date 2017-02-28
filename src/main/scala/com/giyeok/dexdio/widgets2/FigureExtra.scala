@@ -1,9 +1,11 @@
 package com.giyeok.dexdio.widgets2
 
 private class FigureExtra(figure: Figure) {
-    // parent 정보가 정말 필요한가?
+    // TODO parent 정보가 정말 필요한가?
     var parent: Option[Figure] = _
-    var line: Line = _
+    var startPoint: (Line, Int) = _
+    // endPoint는 FlatLabel이나 FlatDeferred에서는 사용하지 않아서 셋팅도 하지 않음(계속 null)
+    var endPoint: (Line, Int) = _
 
     implicit final class MyEnsuring[A](private val self: A) {
         def ensuringEquals(other: A): A = {

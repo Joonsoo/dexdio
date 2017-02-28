@@ -16,72 +16,6 @@ import org.eclipse.swt.widgets.Canvas
 import org.eclipse.swt.widgets.Caret
 import org.eclipse.swt.widgets.Composite
 
-// TODO 가로로 긴 데이터를 잘 처리하기 위해서 FlatFigure sequence도 chunk화
-// figures.context는 Line의 시작점 기준으로 FlatPush들 목록. 이 목록은 다음 용도로 사용:
-// 1. Tag 처리를 위해서
-// 2. Indent 처리를 위해서
-case class Line(figures: FlatFigureLine) {
-    val indentDepth: Int = figures.context count { _.figure.isInstanceOf[Indented] }
-
-    def dimension(dc: DrawingContext): Dimension =
-        figures.seq.foldLeft(Dimension.zero) { (cc, figure) =>
-            figure match {
-                case FlatLabel(label) =>
-                    cc.addRight(label.measureDimension(dc))
-                case FlatDeferred(deferred) =>
-                    val dim = deferred.pixelsDimension(dc)
-                    // TODO 수정
-                    cc.addRight(dim.leading)
-                case _ => cc
-            }
-        }
-    def linesCount: Int = {
-        val lines = figures.seq collect {
-            case FlatDeferred(deferred) if deferred.lines.following.isDefined =>
-                deferred.lines.following.get._1
-        }
-        1 + lines.length + lines.sum
-    }
-}
-
-sealed trait LinesChunk {
-    private var _dimension: Option[Dimension] = None
-    private var _linesCount: Option[Int] = None
-
-    // TODO Line 및 LineChunks에 estimatedHeight 개념이 필요할까 고민(Deferred가 아니면 처음 뜰 때 너무 느림)
-    // TODO Figure에 해당 Figure가 속한 Line 포인터 추가(Line에 대한 reference, Push/Pop 혹은 Label의 인덱스)
-    // TODO LinesChunk에 해당 Chunk가 속한 Chunk 포인터 추가(parent chunk에 대한 reference, 해당 청크 내에서 인덱스)
-    // TODO Figure의 크기나 내용이 변경되면 Line에 notify, Line은 상위 LinesChunk에 notify
-    def dimension(dc: DrawingContext): Dimension = _dimension match {
-        case Some(dimension) => dimension
-        case None =>
-            val dimension = calculateDimension(dc)
-            _dimension = Some(dimension)
-            dimension
-    }
-    def linesCount: Int = _linesCount match {
-        case Some(linesCount) => linesCount
-        case None =>
-            val linesCount = calculateLinesCount()
-            _linesCount = Some(linesCount)
-            linesCount
-    }
-
-    def calculateDimension(dc: DrawingContext): Dimension
-    def calculateLinesCount(): Int
-}
-case class OneLine(line: Line) extends LinesChunk {
-    def calculateDimension(dc: DrawingContext): Dimension = line.dimension(dc)
-    def calculateLinesCount(): Int = line.linesCount
-}
-case class ChunksChunk(chunks: Seq[LinesChunk]) extends LinesChunk {
-    def calculateDimension(dc: DrawingContext): Dimension =
-        chunks.foldLeft(Dimension.zero) { (cc, line) =>
-            cc.addBottom(line.dimension(dc))
-        }
-    def calculateLinesCount(): Int = (chunks map { _.linesCount }).sum
-}
-
 sealed trait Layer
 case class TagsLayer(tags: Set[Tag]) extends Layer
 case class LinesLayer(lineNums: Set[Int]) extends Layer
@@ -123,12 +57,12 @@ class StructuredTextView(parent: Composite, style: Int, root: Figure, columns: S
                 seq
             } else {
                 val groupSize = seq.length / lineChunkSize
-                group((seq.grouped(seq.length / groupSize) map { ChunksChunk(_) }).toSeq)
+                group((seq.grouped(seq.length / groupSize) map Chunk).toSeq)
             }
 
         val lines = root.flatFigures(false).linesStream
-        val chunks = group(lines map { x => OneLine(Line(x)) })
-        if (chunks.length > 1) ChunksChunk(chunks) else chunks.head
+        val chunks = group(lines map Line)
+        if (chunks.length > 1) Chunk(chunks) else chunks.head
     }
     // println(lines)
 
@@ -144,8 +78,8 @@ class StructuredTextView(parent: Composite, style: Int, root: Figure, columns: S
             val occypingY = top to bottom
             if (rangeOverlap(visibleY, occypingY)) {
                 chunk match {
-                    case OneLine(line) =>
-                        line.figures.seq.foldLeft(dc.indentWidth * line.indentDepth) { (x, figure) =>
+                    case line: Line =>
+                        line.line.seq.foldLeft(dc.indentWidth * line.indentDepth) { (x, figure) =>
                             figure match {
                                 case FlatLabel(label) =>
                                     label match {
@@ -154,7 +88,7 @@ class StructuredTextView(parent: Composite, style: Int, root: Figure, columns: S
                                             val occupyingX = x to (x + dimension.width)
                                             if (rangeOverlap(visibleX, occupyingX)) {
                                                 deco.execute(dc.gc) {
-                                                    dc.gc.drawText(text, (x - scroll.x).toInt, (bottom - dimension.height - scroll.y).toInt)
+                                                    dc.gc.drawText(text, (x - scroll.x).toInt, (bottom - dimension.height - scroll.y).toInt, true)
                                                 }
                                             }
                                             x + dimension.width
@@ -167,7 +101,7 @@ class StructuredTextView(parent: Composite, style: Int, root: Figure, columns: S
                                 case _ => x
                             }
                         }
-                    case ChunksChunk(chunks) =>
+                    case Chunk(chunks) =>
                         chunks.foldLeft(top) { (newTop, chunk) => traverse(chunk, newTop) }
                 }
             }

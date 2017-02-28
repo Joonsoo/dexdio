@@ -26,13 +26,20 @@ sealed trait FigureNoTags extends Figure {
 }
 
 sealed trait Label extends Figure {
+    def estimateDimension(dc: DrawingContext): Dimension
     def measureDimension(dc: DrawingContext): Dimension
 }
 case class TextLabel(text: String, deco: TextDecoration, tags: Set[Tag]) extends Label {
+    def estimateDimension(dc: DrawingContext): Dimension =
+        text.foldLeft(Dimension.zero) { (dim, c) =>
+            dim.addRight(dc.charSizeMap.getOrElse(c, dc.charSizeMap.head._2))
+        }
     def measureDimension(dc: DrawingContext): Dimension =
         dc.textExtent(text, deco)
 }
 case class ImageLabel(image: Image, tags: Set[Tag]) extends Label {
+    def estimateDimension(dc: DrawingContext): Dimension =
+        measureDimension(dc)
     def measureDimension(dc: DrawingContext): Dimension =
         Dimension(image.getImageData.width, image.getImageData.height)
 }
@@ -43,11 +50,16 @@ case class SpacingLabel(pixelWidth: Int, spaceCount: Int) extends Label {
         val spaceDim = dc.charSizeMap(' ')
         pixelWidth + spaceDim.width.toInt * spaceCount
     }
+
+    def estimateDimension(dc: DrawingContext): Dimension =
+        measureDimension(dc)
     def measureDimension(dc: DrawingContext): Dimension =
         Dimension(widthInPixel(dc), dc.standardLineHeight)
 }
 
 case class NewLine() extends Label with FigureNoTags {
+    def estimateDimension(dc: DrawingContext): Dimension =
+        measureDimension(dc)
     def measureDimension(dc: DrawingContext): Dimension =
         Dimension(0, dc.standardLineHeight)
 }

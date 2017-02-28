@@ -28,7 +28,7 @@ object DrawingContext {
 }
 
 case class DrawingContext(gc: GC, conf: DrawingConfig) {
-    lazy val indentWidth: Long =
+    def indentWidth: Long =
         DrawingContext.indentWidth match {
             case Some(indent) => indent
             case None =>
@@ -37,8 +37,7 @@ case class DrawingContext(gc: GC, conf: DrawingConfig) {
                 indent
         }
 
-    lazy val charSizeMap: Map[Char, Dimension] =
-        DrawingContext.charSizeMap(gc, conf)
+    lazy val charSizeMap: Map[Char, Dimension] = DrawingContext.charSizeMap(gc, conf)
     lazy val standardLineHeight: Int = (charSizeMap map { _._2.height }).max.toInt
 
     def textExtent(text: String, deco: TextDecoration): Dimension = {
