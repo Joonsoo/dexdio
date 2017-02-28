@@ -36,7 +36,6 @@ object FigureTreeViewTest {
     private lazy val systemFont = JFaceResources.getFont(JFaceResources.TEXT_FONT)
     private lazy val largerFontTextDeco = {
         val fd = systemFont.getFontData
-        fd(0).setHeight(50)
         fd(0).setStyle(SWT.ITALIC | SWT.BOLD)
         val largerFont = new Font(null, fd(0))
         TextWithFont(largerFont)
@@ -159,7 +158,7 @@ object FigureTreeViewTest {
 
         // new FigureTreeView(shell, SWT.NONE, TextLabel("hello", TextNoDecoration, Set()), Seq(), DrawingConfig(15, JFaceResources.getFont(JFaceResources.TEXT_FONT)))
         val myFont = systemFont //new Font(null, "Menlo", 30, SWT.NONE)
-        new FigureTreeView(shell, SWT.NONE, figure, Seq(), DrawingConfig(SpacingLabel(pixelWidth = 0, spaceCount = 2), myFont))
+        new StructuredTextView(shell, SWT.NONE, figure, Seq(), DrawingConfig(SpacingLabel(pixelWidth = 0, spaceCount = 2), myFont))
 
         shell.open()
 

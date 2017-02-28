@@ -94,7 +94,7 @@ case class CompositeLayer(tags: Set[Tag], lineNums: Set[Int]) extends Layer
 //   - 하나의 figure에 대한 bound는 분리되지 않고 한 덩어리로 표현되어야 한다
 class RenderPlan
 
-class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(Figure, Int)], drawingConfig: DrawingConfig)
+class StructuredTextView(parent: Composite, style: Int, root: Figure, columns: Seq[(Figure, Int)], drawingConfig: DrawingConfig)
         extends Canvas(parent, style | SWT.DOUBLE_BUFFERED) with PaintListener with DisposeListener with KeyListener with MouseWheelListener {
 
     private var scrollLeft = 0L
@@ -130,7 +130,7 @@ class FigureTreeView(parent: Composite, style: Int, root: Figure, columns: Seq[(
         val chunks = group(lines map { x => OneLine(Line(x)) })
         if (chunks.length > 1) ChunksChunk(chunks) else chunks.head
     }
-    println(lines)
+    // println(lines)
 
     def rangeOverlap(a: NumericRange.Inclusive[Long], b: NumericRange.Inclusive[Long]): Boolean =
         !((a.end < b.start) || (b.end < a.start))

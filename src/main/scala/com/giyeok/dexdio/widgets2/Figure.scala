@@ -49,7 +49,7 @@ case class SpacingLabel(pixelWidth: Int, spaceCount: Int) extends Label {
 
 case class NewLine() extends Label with FigureNoTags {
     def measureDimension(dc: DrawingContext): Dimension =
-        Dimension.zero
+        Dimension(0, dc.standardLineHeight)
 }
 
 case class Container(children: Seq[Figure], tags: Set[Tag]) extends Figure

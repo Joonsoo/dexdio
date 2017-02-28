@@ -62,16 +62,21 @@ class FlatFigures(val seq: Seq[FlatFigure], val context: List[FlatPush]) extends
     def isEmpty: Boolean = seq.isEmpty
 
     def nextLine: (FlatFigureLine, FlatFigures) = {
-        val (line, rest) = seq span {
+        val (line0, rest0) = seq span {
             case FlatLabel(NewLine()) => false
             case FlatPush(_: Indented) => false
             case FlatPop(_: Indented) => false
             case _ => true
         }
-        val newContext: List[FlatPush] = List()
-        if (rest.nonEmpty) {
-            (new FlatFigureLine(line :+ rest.head, context), new FlatFigures(rest.tail, newContext))
-        } else (new FlatFigureLine(line, context), new FlatFigures(rest, newContext))
+        val (line, rest) = if (rest0.nonEmpty) (line0 :+ rest0.head, rest0.tail) else (line0, rest0)
+        val newContext: List[FlatPush] = line.foldLeft(context) { (m, next) =>
+            next match {
+                case pushed: FlatPush => pushed +: m
+                case FlatPop(popped) => m.tail ensuring m.head.figure == popped
+                case _ => m
+            }
+        }
+        (new FlatFigureLine(line, context), new FlatFigures(rest, newContext))
     }
 
     def linesStream: Stream[FlatFigureLine] = {
