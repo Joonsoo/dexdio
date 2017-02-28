@@ -1,13 +1,16 @@
 package com.giyeok.dexdio.widgets2
 
+import com.giyeok.widgets.structuredText._
 import org.eclipse.jface.resource.JFaceResources
 import org.eclipse.swt.SWT
+import org.eclipse.swt.events.KeyEvent
+import org.eclipse.swt.events.KeyListener
 import org.eclipse.swt.graphics.Font
 import org.eclipse.swt.layout.FillLayout
 import org.eclipse.swt.widgets.Display
 import org.eclipse.swt.widgets.Shell
 
-object FigureTreeViewTest {
+object StructuredTextViewTest {
 
     case class Line(lineNum: Int) extends Tag
     case object Parameter extends Tag
@@ -139,7 +142,7 @@ object FigureTreeViewTest {
         val display = new Display()
         val shell = new Shell(display)
 
-        val figure = {
+        val (figure, collapsible) = {
             val methodFigures: Seq[Figure] = {
                 def methodAt(idx: Int) = deferred(
                     methodFigure("aaa/bbb/ccc", s"method$idx"),
@@ -148,7 +151,8 @@ object FigureTreeViewTest {
                 )
                 methodAt(0) +: ((1 to 1000) flatMap { i => Seq(NewLine(), NewLine(), methodAt(i)) })
             }
-            Container(methodFigures, Set())
+            val collapsible = Collapsible(methodFigure("com/giyeok", "abc"), defaultCollapsed = true)
+            (Container(collapsible +: NewLine() +: NewLine() +: methodFigures, Set()), collapsible)
         }
 
         shell.setLayout(new FillLayout())
@@ -158,7 +162,20 @@ object FigureTreeViewTest {
 
         // new FigureTreeView(shell, SWT.NONE, TextLabel("hello", TextNoDecoration, Set()), Seq(), DrawingConfig(15, JFaceResources.getFont(JFaceResources.TEXT_FONT)))
         val myFont = systemFont //new Font(null, "Menlo", 30, SWT.NONE)
-        new StructuredTextView(shell, SWT.NONE, figure, Seq(), DrawingConfig(SpacingLabel(pixelWidth = 0, spaceCount = 2), myFont))
+        val view = new StructuredTextView(shell, SWT.NONE, figure, Seq(), DrawingConfig(SpacingLabel(pixelWidth = 0, spaceCount = 2), myFont))
+
+        view.addKeyListener(new KeyListener {
+            def keyPressed(e: KeyEvent) = {
+                e.keyCode match {
+                    case SWT.SPACE =>
+                        collapsible.toggle()
+                        view.redraw()
+                    case _ =>
+                }
+            }
+
+            def keyReleased(e: KeyEvent) = {}
+        })
 
         shell.open()
 
